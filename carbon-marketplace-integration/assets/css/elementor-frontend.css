@@ -1,0 +1,22 @@
+/**
+ * Elementor Frontend Styles for Carbon Marketplace Integration
+ */
+
+/* General Elementor Widget Styles */
+.elementor-widget-carbon-marketplace-search {
+    --carbon-primary-color: #27ae60;
+    --carbon-secondary-color: #2ecc71;
+    --carbon-accent-color: #3498db;
+    --carbon-text-color: #2c3e50;
+    --carbon-light-bg: #ecf0f1;
+    --carbon-border-color: #e1e8ed;
+    --carbon-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Widget Container */
+.elementor-widget-carbon-marketplace-search .elementor-widget-container {
+    overflow: visible;
+}
+
+/* Responsive Grid Adjustments */
+@media (max-widt
