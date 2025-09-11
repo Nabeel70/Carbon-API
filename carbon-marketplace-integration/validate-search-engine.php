@@ -36,19 +36,72 @@ if (!defined('ARRAY_A')) define('ARRAY_A', 'ARRAY_A');
 global $wpdb;
 $wpdb = new wpdb();
 
-// Include required files
-require_once __DIR__ . '/includes/models/class-base-model.php';
-require_once __DIR__ . '/includes/models/class-project.php';
-require_once __DIR__ . '/includes/models/class-search-query.php';
-require_once __DIR__ . '/includes/core/class-database.php';
-require_once __DIR__ . '/includes/search/class-search-results.php';
-require_once __DIR__ . '/includes/search/class-search-engine.php';
+// Include required files using autoloader
+if (!defined('ABSPATH')) {
+    define('ABSPATH', dirname(__FILE__) . '/');
+    define('CARBON_MARKETPLACE_VERSION', '1.0.0');
+    define('CARBON_MARKETPLACE_PLUGIN_DIR', dirname(__FILE__) . '/');
+}
 
-use CarbonMarketplace\Search\SearchEngine;
-use CarbonMarketplace\Search\SearchResults;
+// Mock WP_Error class
+if (!class_exists('WP_Error')) {
+    class WP_Error {
+        private $errors = [];
+        private $error_data = [];
+        
+        public function __construct($code = '', $message = '', $data = '') {
+            if (!empty($code)) {
+                $this->errors[$code] = array($message);
+                if (!empty($data)) {
+                    $this->error_data[$code] = $data;
+                }
+            }
+        }
+        
+        public function get_error_code() {
+            $codes = array_keys($this->errors);
+            return empty($codes) ? '' : $codes[0];
+        }
+        
+        public function get_error_message($code = '') {
+            if (empty($code)) {
+                $code = $this->get_error_code();
+            }
+            return isset($this->errors[$code]) ? $this->errors[$code][0] : '';
+        }
+        
+        public function get_error_data($code = '') {
+            if (empty($code)) {
+                $code = $this->get_error_code();
+            }
+            return isset($this->error_data[$code]) ? $this->error_data[$code] : null;
+        }
+        
+        public function add($code, $message, $data = '') {
+            $this->errors[$code][] = $message;
+            if (!empty($data)) {
+                $this->error_data[$code] = $data;
+            }
+        }
+    }
+}
+
+// Mock is_wp_error function
+if (!function_exists('is_wp_error')) {
+    function is_wp_error($thing) {
+        return $thing instanceof WP_Error;
+    }
+}
+
+// Load the autoloader
+require_once __DIR__ . '/includes/class-autoloader.php';
+CarbonMarketplace\Autoloader::init();
+
 use CarbonMarketplace\Models\Project;
 use CarbonMarketplace\Models\SearchQuery;
 use CarbonMarketplace\Core\Database;
+use CarbonMarketplace\Search\SearchResults;
+use CarbonMarketplace\Search\SearchEngine;
 
 echo "=== SearchEngine Validation ===\n\n";
 

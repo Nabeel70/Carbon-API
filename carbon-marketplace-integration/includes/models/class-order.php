@@ -450,4 +450,21 @@ class Order {
         
         return true;
     }
+    
+    /**
+     * Get formatted total price
+     *
+     * @return string Formatted total price with currency symbol
+     */
+    public function get_formatted_total() {
+        $currency_symbols = array(
+            'USD' => '$',
+            'EUR' => '€',
+            'GBP' => '£',
+            'JPY' => '¥',
+        );
+        
+        $symbol = isset($currency_symbols[$this->currency]) ? $currency_symbols[$this->currency] : $this->currency . ' ';
+        return $symbol . number_format($this->total_price, 2);
+    }
 }
