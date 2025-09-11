@@ -14,6 +14,7 @@ if (file_exists(dirname(__FILE__) . '/../../../../../wp-config.php')) {
 // Include plugin files
 require_once dirname(__FILE__) . '/../../carbon-marketplace-integration.php';
 
+
 // Mock WordPress functions if not available
 if (!function_exists('wp_remote_request')) {
     function wp_remote_request($url, $args) {
@@ -160,8 +161,6 @@ class CNaughtClientTestRunner {
     private function test_client_initialization() {
         echo "Testing Client Initialization...\n";
         
-        use CarbonMarketplace\API\CNaughtClient;
-        
         // Test with default configuration
         $client = new CNaughtClient();
         $this->assert_equals('CNaught', $client->get_client_name(), 'Client name should be CNaught');
@@ -185,7 +184,6 @@ class CNaughtClientTestRunner {
     private function test_credential_validation() {
         echo "Testing Credential Validation...\n";
         
-        use CarbonMarketplace\API\CNaughtClient;
         
         // Test missing credentials
         $client = new CNaughtClient();
@@ -221,7 +219,6 @@ class CNaughtClientTestRunner {
     private function test_get_portfolios() {
         echo "Testing Get Portfolios...\n";
         
-        use CarbonMarketplace\API\CNaughtClient;
         
         $client = new CNaughtClient([
             'credentials' => ['api_key' => 'test_key']
@@ -265,7 +262,6 @@ class CNaughtClientTestRunner {
     private function test_get_portfolio_details() {
         echo "Testing Get Portfolio Details...\n";
         
-        use CarbonMarketplace\API\CNaughtClient;
         
         $client = new CNaughtClient([
             'credentials' => ['api_key' => 'test_key']
@@ -309,7 +305,6 @@ class CNaughtClientTestRunner {
     private function test_get_project_details() {
         echo "Testing Get Project Details...\n";
         
-        use CarbonMarketplace\API\CNaughtClient;
         
         $client = new CNaughtClient([
             'credentials' => ['api_key' => 'test_key']
@@ -352,8 +347,6 @@ class CNaughtClientTestRunner {
     private function test_create_quote() {
         echo "Testing Create Quote...\n";
         
-        use CarbonMarketplace\API\CNaughtClient;
-        use CarbonMarketplace\Models\QuoteRequest;
         
         $client = new CNaughtClient([
             'credentials' => ['api_key' => 'test_key']
@@ -407,8 +400,6 @@ class CNaughtClientTestRunner {
     private function test_create_checkout_session() {
         echo "Testing Create Checkout Session...\n";
         
-        use CarbonMarketplace\API\CNaughtClient;
-        use CarbonMarketplace\Models\CheckoutRequest;
         
         $client = new CNaughtClient([
             'credentials' => ['api_key' => 'test_key']
@@ -459,7 +450,6 @@ class CNaughtClientTestRunner {
     private function test_error_handling() {
         echo "Testing Error Handling...\n";
         
-        use CarbonMarketplace\API\CNaughtClient;
         
         $client = new CNaughtClient([
             'credentials' => ['api_key' => 'test_key']
@@ -491,7 +481,6 @@ class CNaughtClientTestRunner {
     private function test_authentication_headers() {
         echo "Testing Authentication Headers...\n";
         
-        use CarbonMarketplace\API\CNaughtClient;
         
         $client = new CNaughtClient([
             'credentials' => [
@@ -516,7 +505,6 @@ class CNaughtClientTestRunner {
     private function test_response_mapping() {
         echo "Testing Response Mapping...\n";
         
-        use CarbonMarketplace\API\CNaughtClient;
         
         $client = new CNaughtClient([
             'credentials' => ['api_key' => 'test_key']

@@ -763,45 +763,6 @@ class AdminInterface {
     }
     
     /**
-     * AJAX handlers
-     */
-    public function ajax_test_credentials() {
-        check_ajax_referer('carbon_marketplace_admin', 'nonce');
-        
-        if (!current_user_can('manage_options')) {
-            wp_die('Unauthorized');
-        }
-        
-        $vendor = sanitize_text_field($_POST['vendor'] ?? '');
-        
-        // Test credentials logic here
-        wp_send_json_success('Credentials test completed');
-    }
-    
-    public function ajax_clear_cache() {
-        check_ajax_referer('carbon_marketplace_admin', 'nonce');
-        
-        if (!current_user_can('manage_options')) {
-            wp_die('Unauthorized');
-        }
-        
-        $this->cache_manager->invalidate_all_cache();
-        wp_send_json_success('Cache cleared');
-    }
-    
-    public function ajax_sync_data() {
-        check_ajax_referer('carbon_marketplace_admin', 'nonce');
-        
-        if (!current_user_can('manage_options')) {
-            wp_die('Unauthorized');
-        }
-        
-        // Trigger data sync
-        do_action('carbon_marketplace_data_sync');
-        wp_send_json_success('Data sync completed');
-    }
-}    
-/**
      * AJAX handler for testing credentials
      */
     public function ajax_test_credentials() {
