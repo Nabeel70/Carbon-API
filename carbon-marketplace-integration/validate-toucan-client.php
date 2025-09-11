@@ -12,11 +12,92 @@ if (!defined('ABSPATH')) {
     define('CARBON_MARKETPLACE_PLUGIN_DIR', dirname(__FILE__) . '/');
 }
 
+// Mock WordPress functions for testing
+if (!function_exists('wp_json_encode')) {
+    function wp_json_encode($data) {
+        return json_encode($data);
+    }
+}
+
+if (!function_exists('is_email')) {
+    function is_email($email) {
+        return filter_var($email, FILTER_VALIDATE_EMAIL) !== false;
+    }
+}
+
+if (!function_exists('current_time')) {
+    function current_time($type) {
+        return date('Y-m-d H:i:s');
+    }
+}
+
+if (!function_exists('get_bloginfo')) {
+    function get_bloginfo($show) {
+        return '6.0';
+    }
+}
+
+if (!function_exists('home_url')) {
+    function home_url() {
+        return 'https://example.com';
+    }
+}
+
+// Mock WP_Error class
+if (!class_exists('WP_Error')) {
+    class WP_Error {
+        private $errors = [];
+        private $error_data = [];
+        
+        public function __construct($code = '', $message = '', $data = '') {
+            if (!empty($code)) {
+                $this->errors[$code] = array($message);
+                if (!empty($data)) {
+                    $this->error_data[$code] = $data;
+                }
+            }
+        }
+        
+        public function get_error_code() {
+            $codes = array_keys($this->errors);
+            return empty($codes) ? '' : $codes[0];
+        }
+        
+        public function get_error_message($code = '') {
+            if (empty($code)) {
+                $code = $this->get_error_code();
+            }
+            return isset($this->errors[$code]) ? $this->errors[$code][0] : '';
+        }
+        
+        public function get_error_data($code = '') {
+            if (empty($code)) {
+                $code = $this->get_error_code();
+            }
+            return isset($this->error_data[$code]) ? $this->error_data[$code] : null;
+        }
+        
+        public function add($code, $message, $data = '') {
+            $this->errors[$code][] = $message;
+            if (!empty($data)) {
+                $this->error_data[$code] = $data;
+            }
+        }
+    }
+}
+
+// Mock is_wp_error function
+if (!function_exists('is_wp_error')) {
+    function is_wp_error($thing) {
+        return $thing instanceof WP_Error;
+    }
+}
+
 // Load the autoloader
 require_once __DIR__ . '/includes/class-autoloader.php';
 CarbonMarketplace\Autoloader::init();
 
-use CarbonMarketplace\API\ToucanClient;
+use CarbonMarketplace\Api\ToucanClient;
 use CarbonMarketplace\Models\Project;
 use CarbonMarketplace\Models\Portfolio;
 use CarbonMarketplace\Models\TokenPrice;

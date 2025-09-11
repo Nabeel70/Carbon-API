@@ -9,10 +9,10 @@
  * @subpackage API
  */
 
-namespace CarbonMarketplace\API;
+namespace CarbonMarketplace\Api;
 
-use CarbonMarketplace\API\BaseApiClient;
-use CarbonMarketplace\API\ApiException;
+use CarbonMarketplace\Api\BaseApiClient;
+use CarbonMarketplace\Api\ApiException;
 use CarbonMarketplace\Models\Project;
 use CarbonMarketplace\Models\Portfolio;
 use CarbonMarketplace\Models\TokenPrice;

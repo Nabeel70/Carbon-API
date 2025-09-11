@@ -50,13 +50,26 @@ class CNaughtClient extends BaseApiClient {
      * @return array Authentication headers
      */
     protected function get_auth_headers() {
-        if (empty($this->credentials['api_key'])) {
-            return array();
+        $headers = array();
+        
+        if (!empty($this->credentials['api_key'])) {
+            $headers['Authorization'] = 'Bearer ' . $this->credentials['api_key'];
         }
         
-        return array(
-            'Authorization' => 'Bearer ' . $this->credentials['api_key'],
-        );
+        if (!empty($this->credentials['client_id'])) {
+            $headers['X-Client-ID'] = $this->credentials['client_id'];
+        }
+        
+        return $headers;
+    }
+    
+    /**
+     * Get client name
+     *
+     * @return string Client name
+     */
+    public function get_client_name() {
+        return 'CNaught';
     }
     
     /**
@@ -608,6 +621,120 @@ class CNaughtClient extends BaseApiClient {
                 'portfolio_id' => $order_data['portfolio_id'] ?? null,
                 'checkout_session_id' => $order_data['checkout_session_id'] ?? null,
                 'retirement_serials' => $order_data['retirement_serials'] ?? array(),
+            ),
+        ));
+    }
+    
+    /**
+     * Map portfolio response data to Portfolio object
+     *
+     * @param array $portfolio_data Raw portfolio data from API
+     * @return Portfolio Portfolio object
+     */
+    protected function map_portfolio_response($portfolio_data) {
+        return new Portfolio(array(
+            'id' => $portfolio_data['id'] ?? '',
+            'vendor_portfolio_id' => $portfolio_data['id'] ?? '',
+            'vendor' => 'cnaught',
+            'name' => $portfolio_data['name'] ?? '',
+            'description' => $portfolio_data['description'] ?? '',
+            'base_price_per_kg' => (float) ($portfolio_data['base_price_per_kg'] ?? 0),
+            'currency' => $portfolio_data['currency'] ?? 'USD',
+            'is_active' => (bool) ($portfolio_data['is_active'] ?? true),
+            'project_count' => (int) ($portfolio_data['project_count'] ?? 0),
+            'total_available_quantity' => (float) ($portfolio_data['total_available_quantity'] ?? 0),
+            'metadata' => array(
+                'minimum_purchase' => $portfolio_data['minimum_purchase'] ?? null,
+                'maximum_purchase' => $portfolio_data['maximum_purchase'] ?? null,
+                'supported_currencies' => $portfolio_data['supported_currencies'] ?? array('USD'),
+            ),
+        ));
+    }
+    
+    /**
+     * Map project response data to Project object
+     *
+     * @param array $project_data Raw project data from API
+     * @return Project Project object
+     */
+    protected function map_project_response($project_data) {
+        return new Project(array(
+            'id' => $project_data['id'] ?? '',
+            'vendor_project_id' => $project_data['id'] ?? '',
+            'vendor' => 'cnaught',
+            'name' => $project_data['name'] ?? '',
+            'description' => $project_data['description'] ?? '',
+            'location' => $project_data['location'] ?? '',
+            'country' => $project_data['country'] ?? '',
+            'project_type' => $project_data['project_type'] ?? '',
+            'methodology' => $project_data['methodology'] ?? '',
+            'price_per_kg' => (float) ($project_data['price_per_kg'] ?? 0),
+            'currency' => $project_data['currency'] ?? 'USD',
+            'available_quantity' => (float) ($project_data['available_quantity'] ?? 0),
+            'registry_name' => $project_data['registry_name'] ?? '',
+            'registry_url' => $project_data['registry_url'] ?? '',
+            'vintage_year' => (int) ($project_data['vintage_year'] ?? 0),
+            'sdgs' => $project_data['sdgs'] ?? array(),
+            'images' => $project_data['images'] ?? array(),
+            'metadata' => array(
+                'verification_standard' => $project_data['verification_standard'] ?? '',
+                'project_status' => $project_data['project_status'] ?? 'active',
+                'additional_certifications' => $project_data['additional_certifications'] ?? array(),
+            ),
+        ));
+    }
+    
+    /**
+     * Map quote response data to Quote object
+     *
+     * @param array $quote_data Raw quote data from API
+     * @return Quote Quote object
+     */
+    protected function map_quote_response($quote_data) {
+        return new Quote(array(
+            'id' => $quote_data['id'] ?? '',
+            'vendor_quote_id' => $quote_data['id'] ?? '',
+            'vendor' => 'cnaught',
+            'amount_kg' => (float) ($quote_data['amount_kg'] ?? 0),
+            'price_per_kg' => (float) ($quote_data['price_per_kg'] ?? 0),
+            'total_price' => (float) ($quote_data['total_price'] ?? 0),
+            'currency' => $quote_data['currency'] ?? 'USD',
+            'valid_until' => $quote_data['valid_until'] ?? null,
+            'portfolio_id' => $quote_data['portfolio_id'] ?? null,
+            'breakdown' => $quote_data['breakdown'] ?? array(),
+            'metadata' => array(
+                'tax_amount' => $quote_data['tax_amount'] ?? 0,
+                'fee_amount' => $quote_data['fee_amount'] ?? 0,
+                'discount_amount' => $quote_data['discount_amount'] ?? 0,
+            ),
+        ));
+    }
+    
+    /**
+     * Map checkout session response data to CheckoutSession object
+     *
+     * @param array $session_data Raw session data from API
+     * @return CheckoutSession CheckoutSession object
+     */
+    protected function map_checkout_session_response($session_data) {
+        return new CheckoutSession(array(
+            'id' => $session_data['id'] ?? '',
+            'vendor_session_id' => $session_data['id'] ?? '',
+            'vendor' => 'cnaught',
+            'checkout_url' => $session_data['checkout_url'] ?? '',
+            'amount_kg' => (float) ($session_data['amount_kg'] ?? 0),
+            'total_price' => (float) ($session_data['total_price'] ?? 0),
+            'currency' => $session_data['currency'] ?? 'USD',
+            'status' => $session_data['status'] ?? 'pending',
+            'expires_at' => $session_data['expires_at'] ?? null,
+            'success_url' => $session_data['success_url'] ?? '',
+            'cancel_url' => $session_data['cancel_url'] ?? '',
+            'metadata' => array(
+                'customer_email' => $session_data['customer_email'] ?? '',
+                'customer_name' => $session_data['customer_name'] ?? '',
+                'portfolio_id' => $session_data['portfolio_id'] ?? null,
+                'order_id' => $session_data['order_id'] ?? null,
+                'webhook_url' => $session_data['webhook_url'] ?? '',
             ),
         ));
     }
