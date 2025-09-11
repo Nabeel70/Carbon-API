@@ -14,6 +14,7 @@ if (file_exists(dirname(__FILE__) . '/../../../../wp-config.php')) {
 // Include plugin files
 require_once dirname(__FILE__) . '/../carbon-marketplace-integration.php';
 
+
 // Mock WordPress functions if not available
 if (!function_exists('wp_json_encode')) {
     function wp_json_encode($data) {
@@ -72,7 +73,6 @@ class SimpleTestRunner {
     private function test_project_model() {
         echo "Testing Project Model...\n";
         
-        use CarbonMarketplace\Models\Project;
         
         // Test project creation
         $data = [
@@ -106,7 +106,6 @@ class SimpleTestRunner {
     private function test_portfolio_model() {
         echo "Testing Portfolio Model...\n";
         
-        use CarbonMarketplace\Models\Portfolio;
         
         // Test portfolio creation
         $data = [
@@ -135,7 +134,6 @@ class SimpleTestRunner {
     private function test_search_query_model() {
         echo "Testing SearchQuery Model...\n";
         
-        use CarbonMarketplace\Models\SearchQuery;
         
         // Test search query creation
         $data = [
@@ -161,7 +159,6 @@ class SimpleTestRunner {
     private function test_order_model() {
         echo "Testing Order Model...\n";
         
-        use CarbonMarketplace\Models\Order;
         
         // Test order creation
         $data = [
