@@ -26,7 +26,12 @@ class Autoloader {
      * Initialize the autoloader
      */
     public static function init() {
-        self::$base_dir = plugin_dir_path(__FILE__);
+        // Handle both WordPress and standalone contexts
+        if (function_exists('plugin_dir_path')) {
+            self::$base_dir = plugin_dir_path(__FILE__);
+        } else {
+            self::$base_dir = dirname(__FILE__) . '/';
+        }
         spl_autoload_register(array(__CLASS__, 'load_class'));
     }
     
@@ -47,13 +52,20 @@ class Autoloader {
         // Get the relative class name
         $relative_class = substr($class, $len);
         
-        // Replace the namespace prefix with the base directory, replace namespace
-        // separators with directory separators in the relative class name, append
-        // with .php
-        $file = self::$base_dir . str_replace('\\', '/', $relative_class) . '.php';
+        // Convert namespace separators to directory separators and make directories lowercase
+        $path_parts = explode('\\', $relative_class);
+        $class_name = array_pop($path_parts); // Get the class name
+        $directories = array_map('strtolower', $path_parts); // Convert directories to lowercase
+        
+        // Build the file path
+        $file_path = self::$base_dir;
+        if (!empty($directories)) {
+            $file_path .= implode('/', $directories) . '/';
+        }
+        $file_path .= $class_name . '.php';
         
         // Convert class name to file name format (PascalCase to kebab-case)
-        $file = self::convert_class_name_to_file_name($file);
+        $file = self::convert_class_name_to_file_name($file_path);
         
         // If the file exists, require it
         if (file_exists($file)) {
@@ -71,6 +83,16 @@ class Autoloader {
         $path_parts = pathinfo($file_path);
         $directory = $path_parts['dirname'];
         $filename = $path_parts['filename'];
+        
+        // Special handling for BaseModel -> abstract-base-model
+        if ($filename === 'BaseModel') {
+            return $directory . '/abstract-base-model.php';
+        }
+        
+        // Special handling for ModelInterface -> interface-model
+        if ($filename === 'ModelInterface') {
+            return $directory . '/interface-model.php';
+        }
         
         // Convert PascalCase to kebab-case and add class- prefix
         $kebab_case = strtolower(preg_replace('/([a-z])([A-Z])/', '$1-$2', $filename));
