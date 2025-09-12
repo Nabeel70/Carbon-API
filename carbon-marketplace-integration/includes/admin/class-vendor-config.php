@@ -71,13 +71,13 @@ class VendorConfig {
             'ajaxUrl' => admin_url('admin-ajax.php'),
             'nonce' => wp_create_nonce('carbon_marketplace_vendor'),
             'strings' => array(
-                'saving' => __('Saving...', 'carbon-marketplace'),
-                'testing' => __('Testing...', 'carbon-marketplace'),
-                'success' => __('Success', 'carbon-marketplace'),
-                'error' => __('Error', 'carbon-marketplace'),
-                'confirmReset' => __('Are you sure you want to reset this vendor configuration?', 'carbon-marketplace'),
-                'connectionSuccess' => __('Connection successful!', 'carbon-marketplace'),
-                'connectionFailed' => __('Connection failed. Please check your credentials.', 'carbon-marketplace'),
+                'saving' => \__('Saving...', 'carbon-marketplace'),
+                'testing' => \__('Testing...', 'carbon-marketplace'),
+                'success' => \__('Success', 'carbon-marketplace'),
+                'error' => \__('Error', 'carbon-marketplace'),
+                'confirmReset' => \__('Are you sure you want to reset this vendor configuration?', 'carbon-marketplace'),
+                'connectionSuccess' => \__('Connection successful!', 'carbon-marketplace'),
+                'connectionFailed' => \__('Connection failed. Please check your credentials.', 'carbon-marketplace'),
             )
         ));
     }
@@ -340,14 +340,14 @@ class VendorConfig {
         check_ajax_referer('carbon_marketplace_vendor', 'nonce');
         
         if (!current_user_can('manage_options')) {
-            wp_send_json_error(__('Insufficient permissions', 'carbon-marketplace'));
+            wp_send_json_error(\__('Insufficient permissions', 'carbon-marketplace'));
         }
         
         $vendor = sanitize_text_field($_POST['vendor'] ?? '');
         $config_data = $_POST['config'] ?? array();
         
         if (empty($vendor)) {
-            wp_send_json_error(__('Vendor not specified', 'carbon-marketplace'));
+            wp_send_json_error(\__('Vendor not specified', 'carbon-marketplace'));
         }
         
         // Sanitize configuration data
@@ -366,7 +366,7 @@ class VendorConfig {
         // Update API manager with new credentials
         $this->update_api_manager_client($vendor);
         
-        wp_send_json_success(__('Configuration saved successfully', 'carbon-marketplace'));
+        wp_send_json_success(\__('Configuration saved successfully', 'carbon-marketplace'));
     }
     
     /**
@@ -376,14 +376,14 @@ class VendorConfig {
         check_ajax_referer('carbon_marketplace_vendor', 'nonce');
         
         if (!current_user_can('manage_options')) {
-            wp_send_json_error(__('Insufficient permissions', 'carbon-marketplace'));
+            wp_send_json_error(\__('Insufficient permissions', 'carbon-marketplace'));
         }
         
         $vendor = sanitize_text_field($_POST['vendor'] ?? '');
         $config_data = $_POST['config'] ?? array();
         
         if (empty($vendor)) {
-            wp_send_json_error(__('Vendor not specified', 'carbon-marketplace'));
+            wp_send_json_error(\__('Vendor not specified', 'carbon-marketplace'));
         }
         
         // Sanitize configuration data
@@ -396,7 +396,7 @@ class VendorConfig {
             wp_send_json_error($result->get_error_message());
         }
         
-        wp_send_json_success(__('Connection test successful', 'carbon-marketplace'));
+        wp_send_json_success(\__('Connection test successful', 'carbon-marketplace'));
     }
     
     /**
@@ -406,14 +406,14 @@ class VendorConfig {
         check_ajax_referer('carbon_marketplace_vendor', 'nonce');
         
         if (!current_user_can('manage_options')) {
-            wp_send_json_error(__('Insufficient permissions', 'carbon-marketplace'));
+            wp_send_json_error(\__('Insufficient permissions', 'carbon-marketplace'));
         }
         
         $vendor = sanitize_text_field($_POST['vendor'] ?? '');
         $enabled = filter_var($_POST['enabled'] ?? false, FILTER_VALIDATE_BOOLEAN);
         
         if (empty($vendor)) {
-            wp_send_json_error(__('Vendor not specified', 'carbon-marketplace'));
+            wp_send_json_error(\__('Vendor not specified', 'carbon-marketplace'));
         }
         
         // Get current credentials
@@ -434,7 +434,7 @@ class VendorConfig {
             $this->api_manager->unregister_client($vendor);
         }
         
-        $status_message = $enabled ? __('Vendor enabled', 'carbon-marketplace') : __('Vendor disabled', 'carbon-marketplace');
+        $status_message = $enabled ? \__('Vendor enabled', 'carbon-marketplace') : \__('Vendor disabled', 'carbon-marketplace');
         wp_send_json_success($status_message);
     }
     
@@ -445,26 +445,26 @@ class VendorConfig {
         check_ajax_referer('carbon_marketplace_vendor', 'nonce');
         
         if (!current_user_can('manage_options')) {
-            wp_send_json_error(__('Insufficient permissions', 'carbon-marketplace'));
+            wp_send_json_error(\__('Insufficient permissions', 'carbon-marketplace'));
         }
         
         $vendor = sanitize_text_field($_POST['vendor'] ?? '');
         
         if (empty($vendor)) {
-            wp_send_json_error(__('Vendor not specified', 'carbon-marketplace'));
+            wp_send_json_error(\__('Vendor not specified', 'carbon-marketplace'));
         }
         
         // Delete credentials
         $result = $this->credential_manager->delete_credentials($vendor);
         
         if (!$result) {
-            wp_send_json_error(__('Failed to reset vendor configuration', 'carbon-marketplace'));
+            wp_send_json_error(\__('Failed to reset vendor configuration', 'carbon-marketplace'));
         }
         
         // Remove from API manager
         $this->api_manager->unregister_client($vendor);
         
-        wp_send_json_success(__('Vendor configuration reset', 'carbon-marketplace'));
+        wp_send_json_success(\__('Vendor configuration reset', 'carbon-marketplace'));
     }
     
     /**

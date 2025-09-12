@@ -110,7 +110,7 @@ class CarbonMarketplace {
      */
     public function init() {
         // Load text domain
-        add_action('init', array($this, 'load_textdomain'));
+        \add_action('init', array($this, 'load_textdomain'));
         
         // Initialize components
         $this->init_hooks();
@@ -147,22 +147,22 @@ class CarbonMarketplace {
      */
     private function init_hooks() {
         // Schedule cache refresh
-        add_action('carbon_marketplace_cache_refresh', array($this->cache_manager, 'refresh_cache'));
+        \add_action('carbon_marketplace_cache_refresh', array($this->cache_manager, 'refresh_cache'));
         
         // Schedule data sync
-        add_action('carbon_marketplace_data_sync', array($this->api_manager, 'sync_all_data'));
+        \add_action('carbon_marketplace_data_sync', array($this->api_manager, 'sync_all_data'));
         
         // Handle plugin updates
-        add_action('upgrader_process_complete', array($this, 'handle_plugin_update'), 10, 2);
+        \add_action('upgrader_process_complete', array($this, 'handle_plugin_update'), 10, 2);
     }
     
     /**
      * Register shortcodes
      */
     public function register_shortcodes() {
-        add_shortcode('carbon_marketplace_search', array($this, 'render_search_shortcode'));
-        add_shortcode('carbon_marketplace_projects', array($this, 'render_projects_shortcode'));
-        add_shortcode('carbon_marketplace_project_detail', array($this, 'render_project_detail_shortcode'));
+        \add_shortcode('carbon_marketplace_search', array($this, 'render_search_shortcode'));
+        \add_shortcode('carbon_marketplace_projects', array($this, 'render_projects_shortcode'));
+        \add_shortcode('carbon_marketplace_project_detail', array($this, 'render_project_detail_shortcode'));
     }
     
     /**
@@ -170,7 +170,7 @@ class CarbonMarketplace {
      */
     public function register_admin_menus() {
         if (is_admin()) {
-            add_action('admin_menu', array($this->admin_interface, 'add_admin_menu'));
+            \add_action('admin_menu', array($this->admin_interface, 'add_admin_menu'));
         }
     }
     
@@ -178,29 +178,29 @@ class CarbonMarketplace {
      * Register webhook endpoints
      */
     public function register_webhook_endpoints() {
-        add_action('rest_api_init', array($this->webhook_handler, 'register_routes'));
+        \add_action('rest_api_init', array($this->webhook_handler, 'register_routes'));
     }
     
     /**
      * Enqueue scripts and styles
      */
     public function enqueue_scripts() {
-        add_action('wp_enqueue_scripts', array($this, 'enqueue_frontend_assets'));
-        add_action('admin_enqueue_scripts', array($this, 'enqueue_admin_assets'));
+        \add_action('wp_enqueue_scripts', array($this, 'enqueue_frontend_assets'));
+        \add_action('admin_enqueue_scripts', array($this, 'enqueue_admin_assets'));
     }
     
     /**
      * Enqueue frontend assets
      */
     public function enqueue_frontend_assets() {
-        wp_enqueue_style(
+        \wp_enqueue_style(
             'carbon-marketplace-frontend',
             CARBON_MARKETPLACE_PLUGIN_URL . 'assets/css/frontend.css',
             array(),
             CARBON_MARKETPLACE_VERSION
         );
         
-        wp_enqueue_script(
+        \wp_enqueue_script(
             'carbon-marketplace-frontend',
             CARBON_MARKETPLACE_PLUGIN_URL . 'assets/js/frontend.js',
             array('jquery'),
@@ -209,13 +209,13 @@ class CarbonMarketplace {
         );
         
         // Localize script for AJAX
-        wp_localize_script('carbon-marketplace-frontend', 'carbonMarketplace', array(
-            'ajaxUrl' => admin_url('admin-ajax.php'),
-            'nonce' => wp_create_nonce('carbon_marketplace_nonce'),
+        \wp_localize_script('carbon-marketplace-frontend', 'carbonMarketplace', array(
+            'ajaxUrl' => \admin_url('admin-ajax.php'),
+            'nonce' => \wp_create_nonce('carbon_marketplace_nonce'),
             'strings' => array(
-                'loading' => __('Loading...', 'carbon-marketplace'),
-                'error' => __('An error occurred. Please try again.', 'carbon-marketplace'),
-                'noResults' => __('No projects found matching your criteria.', 'carbon-marketplace'),
+                'loading' => \__('Loading...', 'carbon-marketplace'),
+                'error' => \__('An error occurred. Please try again.', 'carbon-marketplace'),
+                'noResults' => \__('No projects found matching your criteria.', 'carbon-marketplace'),
             ),
         ));
     }
@@ -229,14 +229,14 @@ class CarbonMarketplace {
             return;
         }
         
-        wp_enqueue_style(
+        \wp_enqueue_style(
             'carbon-marketplace-admin',
             CARBON_MARKETPLACE_PLUGIN_URL . 'assets/css/admin.css',
             array(),
             CARBON_MARKETPLACE_VERSION
         );
         
-        wp_enqueue_script(
+        \wp_enqueue_script(
             'carbon-marketplace-admin',
             CARBON_MARKETPLACE_PLUGIN_URL . 'assets/js/admin.js',
             array('jquery'),
@@ -249,7 +249,7 @@ class CarbonMarketplace {
      * Load plugin text domain
      */
     public function load_textdomain() {
-        load_plugin_textdomain(
+        \load_plugin_textdomain(
             'carbon-marketplace',
             false,
             dirname(CARBON_MARKETPLACE_PLUGIN_BASENAME) . '/languages'
@@ -260,7 +260,7 @@ class CarbonMarketplace {
      * Render search shortcode
      */
     public function render_search_shortcode($atts) {
-        $atts = shortcode_atts(array(
+        $atts = \shortcode_atts(array(
             'show_filters' => 'true',
             'results_per_page' => '20',
             'layout' => 'grid',
@@ -275,7 +275,7 @@ class CarbonMarketplace {
      * Render projects shortcode
      */
     public function render_projects_shortcode($atts) {
-        $atts = shortcode_atts(array(
+        $atts = \shortcode_atts(array(
             'limit' => '20',
             'vendor' => '',
             'project_type' => '',
@@ -291,7 +291,7 @@ class CarbonMarketplace {
      * Render project detail shortcode
      */
     public function render_project_detail_shortcode($atts) {
-        $atts = shortcode_atts(array(
+        $atts = \shortcode_atts(array(
             'project_id' => '',
             'vendor' => '',
         ), $atts, 'carbon_marketplace_project_detail');
@@ -329,15 +329,15 @@ class CarbonMarketplace {
         
         // Schedule cron events
         if (!wp_next_scheduled('carbon_marketplace_cache_refresh')) {
-            wp_schedule_event(time(), 'hourly', 'carbon_marketplace_cache_refresh');
+            \wp_schedule_event(time(), 'hourly', 'carbon_marketplace_cache_refresh');
         }
         
         if (!wp_next_scheduled('carbon_marketplace_data_sync')) {
-            wp_schedule_event(time(), 'twicedaily', 'carbon_marketplace_data_sync');
+            \wp_schedule_event(time(), 'twicedaily', 'carbon_marketplace_data_sync');
         }
         
         // Flush rewrite rules
-        flush_rewrite_rules();
+        \flush_rewrite_rules();
         
         // Set default options
         self::set_default_options();
@@ -348,11 +348,11 @@ class CarbonMarketplace {
      */
     public static function deactivate() {
         // Clear scheduled events
-        wp_clear_scheduled_hook('carbon_marketplace_cache_refresh');
-        wp_clear_scheduled_hook('carbon_marketplace_data_sync');
+        \wp_clear_scheduled_hook('carbon_marketplace_cache_refresh');
+        \wp_clear_scheduled_hook('carbon_marketplace_data_sync');
         
         // Flush rewrite rules
-        flush_rewrite_rules();
+        \flush_rewrite_rules();
     }
     
     /**
@@ -360,7 +360,7 @@ class CarbonMarketplace {
      */
     public static function uninstall() {
         // Remove all plugin data if user chooses to
-        $remove_data = get_option('carbon_marketplace_remove_data_on_uninstall', false);
+        $remove_data = \get_option('carbon_marketplace_remove_data_on_uninstall', false);
         
         if ($remove_data) {
             // Remove database tables
@@ -391,7 +391,7 @@ class CarbonMarketplace {
         
         foreach ($defaults as $option => $value) {
             if (get_option($option) === false) {
-                add_option($option, $value);
+                \add_option($option, $value);
             }
         }
     }
