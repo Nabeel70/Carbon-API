@@ -32,8 +32,13 @@ class Database {
      */
     public function __construct() {
         global $wpdb;
-        $this->wpdb = $wpdb;
-        $this->table_prefix = $wpdb->prefix . 'carbon_';
+        if ($wpdb) {
+            $this->wpdb = $wpdb;
+            $this->table_prefix = $wpdb->prefix . 'carbon_';
+        } else {
+            // Fallback for testing or non-WordPress environments
+            $this->table_prefix = 'wp_carbon_';
+        }
     }
     
     /**
@@ -180,6 +185,18 @@ class Database {
         $result = $this->wpdb->query($sql);
         
         return $result !== false;
+    }
+    
+    /**
+     * Drop all plugin tables
+     *
+     * @return bool True on success, false on failure
+     */
+    public function drop_tables(): bool {
+        $success = true;
+        $success = $success && $this->drop_projects_table();
+        $success = $success && $this->drop_orders_table();
+        return $success;
     }
     
     /**

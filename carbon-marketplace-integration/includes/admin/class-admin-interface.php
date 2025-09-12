@@ -44,21 +44,21 @@ class AdminInterface {
      * Initialize admin interface
      */
     public function init() {
-        add_action('admin_menu', array($this, 'add_admin_menu'));
-        add_action('admin_init', array($this, 'register_settings'));
-        add_action('admin_notices', array($this, 'show_admin_notices'));
-        add_action('wp_ajax_carbon_marketplace_test_credentials', array($this, 'ajax_test_credentials'));
-        add_action('wp_ajax_carbon_marketplace_clear_cache', array($this, 'ajax_clear_cache'));
-        add_action('wp_ajax_carbon_marketplace_sync_data', array($this, 'ajax_sync_data'));
+        \add_action('admin_menu', array($this, 'add_admin_menu'));
+        \add_action('admin_init', array($this, 'register_settings'));
+        \add_action('admin_notices', array($this, 'show_admin_notices'));
+        \add_action('wp_ajax_carbon_marketplace_test_credentials', array($this, 'ajax_test_credentials'));
+        \add_action('wp_ajax_carbon_marketplace_clear_cache', array($this, 'ajax_clear_cache'));
+        \add_action('wp_ajax_carbon_marketplace_sync_data', array($this, 'ajax_sync_data'));
     }
     
     /**
      * Add admin menu
      */
     public function add_admin_menu() {
-        add_menu_page(
-            __('Carbon Marketplace', 'carbon-marketplace'),
-            __('Carbon Marketplace', 'carbon-marketplace'),
+        \add_menu_page(
+            \__('Carbon Marketplace', 'carbon-marketplace'),
+            \__('Carbon Marketplace', 'carbon-marketplace'),
             'manage_options',
             'carbon-marketplace',
             array($this, 'render_main_page'),
@@ -66,37 +66,37 @@ class AdminInterface {
             30
         );
         
-        add_submenu_page(
+        \add_submenu_page(
             'carbon-marketplace',
-            __('Settings', 'carbon-marketplace'),
-            __('Settings', 'carbon-marketplace'),
+            \__('Settings', 'carbon-marketplace'),
+            \__('Settings', 'carbon-marketplace'),
             'manage_options',
             'carbon-marketplace-settings',
             array($this, 'render_settings_page')
         );
         
-        add_submenu_page(
+        \add_submenu_page(
             'carbon-marketplace',
-            __('API Vendors', 'carbon-marketplace'),
-            __('API Vendors', 'carbon-marketplace'),
+            \__('API Vendors', 'carbon-marketplace'),
+            \__('API Vendors', 'carbon-marketplace'),
             'manage_options',
             'carbon-marketplace-vendors',
             array($this, 'render_vendors_page')
         );
         
-        add_submenu_page(
+        \add_submenu_page(
             'carbon-marketplace',
-            __('Cache Management', 'carbon-marketplace'),
-            __('Cache Management', 'carbon-marketplace'),
+            \__('Cache Management', 'carbon-marketplace'),
+            \__('Cache Management', 'carbon-marketplace'),
             'manage_options',
             'carbon-marketplace-cache',
             array($this, 'render_cache_page')
         );
         
-        add_submenu_page(
+        \add_submenu_page(
             'carbon-marketplace',
-            __('Analytics', 'carbon-marketplace'),
-            __('Analytics', 'carbon-marketplace'),
+            \__('Analytics', 'carbon-marketplace'),
+            \__('Analytics', 'carbon-marketplace'),
             'manage_options',
             'carbon-marketplace-analytics',
             array($this, 'render_analytics_page')
@@ -108,53 +108,53 @@ class AdminInterface {
      */
     public function register_settings() {
         // General settings
-        register_setting('carbon_marketplace_general', 'carbon_marketplace_enable_cache');
-        register_setting('carbon_marketplace_general', 'carbon_marketplace_enable_logging');
-        register_setting('carbon_marketplace_general', 'carbon_marketplace_remove_data_on_uninstall');
+        \register_setting('carbon_marketplace_general', 'carbon_marketplace_enable_cache');
+        \register_setting('carbon_marketplace_general', 'carbon_marketplace_enable_logging');
+        \register_setting('carbon_marketplace_general', 'carbon_marketplace_remove_data_on_uninstall');
         
         // Cache settings
-        register_setting('carbon_marketplace_cache', 'carbon_marketplace_cache_ttl_portfolios');
-        register_setting('carbon_marketplace_cache', 'carbon_marketplace_cache_ttl_projects');
-        register_setting('carbon_marketplace_cache', 'carbon_marketplace_cache_ttl_quotes');
-        register_setting('carbon_marketplace_cache', 'carbon_marketplace_cache_ttl_search');
-        register_setting('carbon_marketplace_cache', 'carbon_marketplace_cache_max_size');
-        register_setting('carbon_marketplace_cache', 'carbon_marketplace_cache_compression');
+        \register_setting('carbon_marketplace_cache', 'carbon_marketplace_cache_ttl_portfolios');
+        \register_setting('carbon_marketplace_cache', 'carbon_marketplace_cache_ttl_projects');
+        \register_setting('carbon_marketplace_cache', 'carbon_marketplace_cache_ttl_quotes');
+        \register_setting('carbon_marketplace_cache', 'carbon_marketplace_cache_ttl_search');
+        \register_setting('carbon_marketplace_cache', 'carbon_marketplace_cache_max_size');
+        \register_setting('carbon_marketplace_cache', 'carbon_marketplace_cache_compression');
         
         // CNaught API settings
-        register_setting('carbon_marketplace_cnaught', 'carbon_marketplace_cnaught_api_key');
-        register_setting('carbon_marketplace_cnaught', 'carbon_marketplace_cnaught_sandbox_mode');
-        register_setting('carbon_marketplace_cnaught', 'carbon_marketplace_cnaught_enabled');
+        \register_setting('carbon_marketplace_cnaught', 'carbon_marketplace_cnaught_api_key');
+        \register_setting('carbon_marketplace_cnaught', 'carbon_marketplace_cnaught_sandbox_mode');
+        \register_setting('carbon_marketplace_cnaught', 'carbon_marketplace_cnaught_enabled');
         
         // Toucan API settings
-        register_setting('carbon_marketplace_toucan', 'carbon_marketplace_toucan_api_key');
-        register_setting('carbon_marketplace_toucan', 'carbon_marketplace_toucan_network');
-        register_setting('carbon_marketplace_toucan', 'carbon_marketplace_toucan_enabled');
+        \register_setting('carbon_marketplace_toucan', 'carbon_marketplace_toucan_api_key');
+        \register_setting('carbon_marketplace_toucan', 'carbon_marketplace_toucan_network');
+        \register_setting('carbon_marketplace_toucan', 'carbon_marketplace_toucan_enabled');
         
         // Add settings sections
         add_settings_section(
             'carbon_marketplace_general_section',
-            __('General Settings', 'carbon-marketplace'),
+            \__('General Settings', 'carbon-marketplace'),
             array($this, 'render_general_section'),
             'carbon_marketplace_general'
         );
         
         add_settings_section(
             'carbon_marketplace_cache_section',
-            __('Cache Settings', 'carbon-marketplace'),
+            \__('Cache Settings', 'carbon-marketplace'),
             array($this, 'render_cache_section'),
             'carbon_marketplace_cache'
         );
         
         add_settings_section(
             'carbon_marketplace_cnaught_section',
-            __('CNaught API Settings', 'carbon-marketplace'),
+            \__('CNaught API Settings', 'carbon-marketplace'),
             array($this, 'render_cnaught_section'),
             'carbon_marketplace_cnaught'
         );
         
         add_settings_section(
             'carbon_marketplace_toucan_section',
-            __('Toucan API Settings', 'carbon-marketplace'),
+            \__('Toucan API Settings', 'carbon-marketplace'),
             array($this, 'render_toucan_section'),
             'carbon_marketplace_toucan'
         );
@@ -170,50 +170,50 @@ class AdminInterface {
         // General settings fields
         add_settings_field(
             'enable_cache',
-            __('Enable Cache', 'carbon-marketplace'),
+            \__('Enable Cache', 'carbon-marketplace'),
             array($this, 'render_checkbox_field'),
             'carbon_marketplace_general',
             'carbon_marketplace_general_section',
             array(
                 'option_name' => 'carbon_marketplace_enable_cache',
-                'description' => __('Enable caching to improve performance', 'carbon-marketplace'),
+                'description' => \__('Enable caching to improve performance', 'carbon-marketplace'),
             )
         );
         
         add_settings_field(
             'enable_logging',
-            __('Enable Logging', 'carbon-marketplace'),
+            \__('Enable Logging', 'carbon-marketplace'),
             array($this, 'render_checkbox_field'),
             'carbon_marketplace_general',
             'carbon_marketplace_general_section',
             array(
                 'option_name' => 'carbon_marketplace_enable_logging',
-                'description' => __('Enable logging for debugging purposes', 'carbon-marketplace'),
+                'description' => \__('Enable logging for debugging purposes', 'carbon-marketplace'),
             )
         );
         
         add_settings_field(
             'remove_data_on_uninstall',
-            __('Remove Data on Uninstall', 'carbon-marketplace'),
+            \__('Remove Data on Uninstall', 'carbon-marketplace'),
             array($this, 'render_checkbox_field'),
             'carbon_marketplace_general',
             'carbon_marketplace_general_section',
             array(
                 'option_name' => 'carbon_marketplace_remove_data_on_uninstall',
-                'description' => __('Remove all plugin data when uninstalling', 'carbon-marketplace'),
+                'description' => \__('Remove all plugin data when uninstalling', 'carbon-marketplace'),
             )
         );
         
         // Cache settings fields
         add_settings_field(
             'cache_ttl_portfolios',
-            __('Portfolios Cache TTL (seconds)', 'carbon-marketplace'),
+            \__('Portfolios Cache TTL (seconds)', 'carbon-marketplace'),
             array($this, 'render_number_field'),
             'carbon_marketplace_cache',
             'carbon_marketplace_cache_section',
             array(
                 'option_name' => 'carbon_marketplace_cache_ttl_portfolios',
-                'description' => __('How long to cache portfolio data', 'carbon-marketplace'),
+                'description' => \__('How long to cache portfolio data', 'carbon-marketplace'),
                 'min' => 60,
                 'max' => 86400,
             )
@@ -221,13 +221,13 @@ class AdminInterface {
         
         add_settings_field(
             'cache_ttl_projects',
-            __('Projects Cache TTL (seconds)', 'carbon-marketplace'),
+            \__('Projects Cache TTL (seconds)', 'carbon-marketplace'),
             array($this, 'render_number_field'),
             'carbon_marketplace_cache',
             'carbon_marketplace_cache_section',
             array(
                 'option_name' => 'carbon_marketplace_cache_ttl_projects',
-                'description' => __('How long to cache project data', 'carbon-marketplace'),
+                'description' => \__('How long to cache project data', 'carbon-marketplace'),
                 'min' => 60,
                 'max' => 86400,
             )
@@ -235,13 +235,13 @@ class AdminInterface {
         
         add_settings_field(
             'cache_ttl_quotes',
-            __('Quotes Cache TTL (seconds)', 'carbon-marketplace'),
+            \__('Quotes Cache TTL (seconds)', 'carbon-marketplace'),
             array($this, 'render_number_field'),
             'carbon_marketplace_cache',
             'carbon_marketplace_cache_section',
             array(
                 'option_name' => 'carbon_marketplace_cache_ttl_quotes',
-                'description' => __('How long to cache quote data', 'carbon-marketplace'),
+                'description' => \__('How long to cache quote data', 'carbon-marketplace'),
                 'min' => 30,
                 'max' => 3600,
             )
@@ -250,77 +250,77 @@ class AdminInterface {
         // CNaught API fields
         add_settings_field(
             'cnaught_enabled',
-            __('Enable CNaught API', 'carbon-marketplace'),
+            \__('Enable CNaught API', 'carbon-marketplace'),
             array($this, 'render_checkbox_field'),
             'carbon_marketplace_cnaught',
             'carbon_marketplace_cnaught_section',
             array(
                 'option_name' => 'carbon_marketplace_cnaught_enabled',
-                'description' => __('Enable integration with CNaught API', 'carbon-marketplace'),
+                'description' => \__('Enable integration with CNaught API', 'carbon-marketplace'),
             )
         );
         
         add_settings_field(
             'cnaught_api_key',
-            __('CNaught API Key', 'carbon-marketplace'),
+            \__('CNaught API Key', 'carbon-marketplace'),
             array($this, 'render_password_field'),
             'carbon_marketplace_cnaught',
             'carbon_marketplace_cnaught_section',
             array(
                 'option_name' => 'carbon_marketplace_cnaught_api_key',
-                'description' => __('Your CNaught API key', 'carbon-marketplace'),
+                'description' => \__('Your CNaught API key', 'carbon-marketplace'),
             )
         );
         
         add_settings_field(
             'cnaught_sandbox_mode',
-            __('Sandbox Mode', 'carbon-marketplace'),
+            \__('Sandbox Mode', 'carbon-marketplace'),
             array($this, 'render_checkbox_field'),
             'carbon_marketplace_cnaught',
             'carbon_marketplace_cnaught_section',
             array(
                 'option_name' => 'carbon_marketplace_cnaught_sandbox_mode',
-                'description' => __('Use CNaught sandbox environment for testing', 'carbon-marketplace'),
+                'description' => \__('Use CNaught sandbox environment for testing', 'carbon-marketplace'),
             )
         );
         
         // Toucan API fields
         add_settings_field(
             'toucan_enabled',
-            __('Enable Toucan API', 'carbon-marketplace'),
+            \__('Enable Toucan API', 'carbon-marketplace'),
             array($this, 'render_checkbox_field'),
             'carbon_marketplace_toucan',
             'carbon_marketplace_toucan_section',
             array(
                 'option_name' => 'carbon_marketplace_toucan_enabled',
-                'description' => __('Enable integration with Toucan Protocol', 'carbon-marketplace'),
+                'description' => \__('Enable integration with Toucan Protocol', 'carbon-marketplace'),
             )
         );
         
         add_settings_field(
             'toucan_api_key',
-            __('The Graph API Key (Optional)', 'carbon-marketplace'),
+            \__('The Graph API Key (Optional)', 'carbon-marketplace'),
             array($this, 'render_text_field'),
             'carbon_marketplace_toucan',
             'carbon_marketplace_toucan_section',
             array(
                 'option_name' => 'carbon_marketplace_toucan_api_key',
-                'description' => __('Optional API key for The Graph hosted service', 'carbon-marketplace'),
+                'description' => \__('Optional API key for The Graph hosted service', 'carbon-marketplace'),
             )
         );
         
         add_settings_field(
             'toucan_network',
-            __('Network', 'carbon-marketplace'),
+            \__('Network', 'carbon-marketplace'),
             array($this, 'render_select_field'),
             'carbon_marketplace_toucan',
             'carbon_marketplace_toucan_section',
             array(
                 'option_name' => 'carbon_marketplace_toucan_network',
-                'description' => __('Blockchain network to use', 'carbon-marketplace'),
+                'description' => \__('Blockchain network to use', 'carbon-marketplace'),
                 'options' => array(
-                    'polygon' => __('Polygon Mainnet', 'carbon-marketplace'),
-                    'mumbai' => __('Polygon Mumbai (Testnet)', 'carbon-marketplace'),
+                    'polygon' => \__('Polygon Mainnet', 'carbon-marketplace'),
+                    'mumbai' => \__('Polygon Mumbai (Testnet)', 'carbon-marketplace'),
                 ),
             )
         );
@@ -478,8 +478,8 @@ class AdminInterface {
             'PHP Version' => PHP_VERSION,
             'WordPress Version' => get_bloginfo('version'),
             'Plugin Version' => CARBON_MARKETPLACE_VERSION,
-            'Cache Enabled' => get_option('carbon_marketplace_enable_cache', true) ? 'Yes' : 'No',
-            'Logging Enabled' => get_option('carbon_marketplace_enable_logging', true) ? 'Yes' : 'No',
+            'Cache Enabled' => \get_option('carbon_marketplace_enable_cache', true) ? 'Yes' : 'No',
+            'Logging Enabled' => \get_option('carbon_marketplace_enable_logging', true) ? 'Yes' : 'No',
         );
         
         echo '<table class="widefat">';
@@ -498,11 +498,11 @@ class AdminInterface {
     private function render_api_status() {
         $apis = array(
             'CNaught' => array(
-                'enabled' => get_option('carbon_marketplace_cnaught_enabled', false),
+                'enabled' => \get_option('carbon_marketplace_cnaught_enabled', false),
                 'configured' => !empty(get_option('carbon_marketplace_cnaught_api_key')),
             ),
             'Toucan' => array(
-                'enabled' => get_option('carbon_marketplace_toucan_enabled', false),
+                'enabled' => \get_option('carbon_marketplace_toucan_enabled', false),
                 'configured' => true, // Toucan doesn't require API key
             ),
         );
@@ -625,7 +625,7 @@ class AdminInterface {
     private function get_vendor_info($vendor) {
         switch ($vendor) {
             case 'cnaught':
-                $enabled = get_option('carbon_marketplace_cnaught_enabled', false);
+                $enabled = \get_option('carbon_marketplace_cnaught_enabled', false);
                 $configured = !empty(get_option('carbon_marketplace_cnaught_api_key'));
                 return array(
                     'name' => 'CNaught',
@@ -634,7 +634,7 @@ class AdminInterface {
                 );
                 
             case 'toucan':
-                $enabled = get_option('carbon_marketplace_toucan_enabled', false);
+                $enabled = \get_option('carbon_marketplace_toucan_enabled', false);
                 return array(
                     'name' => 'Toucan Protocol',
                     'status_class' => $enabled ? 'status-ok' : 'status-error',
@@ -655,7 +655,7 @@ class AdminInterface {
      */
     public function render_checkbox_field($args) {
         $option_name = $args['option_name'];
-        $value = get_option($option_name, false);
+        $value = \get_option($option_name, false);
         $description = $args['description'] ?? '';
         
         echo '<label>';
@@ -666,7 +666,7 @@ class AdminInterface {
     
     public function render_text_field($args) {
         $option_name = $args['option_name'];
-        $value = get_option($option_name, '');
+        $value = \get_option($option_name, '');
         $description = $args['description'] ?? '';
         
         echo '<input type="text" name="' . esc_attr($option_name) . '" value="' . esc_attr($value) . '" class="regular-text" />';
@@ -677,7 +677,7 @@ class AdminInterface {
     
     public function render_password_field($args) {
         $option_name = $args['option_name'];
-        $value = get_option($option_name, '');
+        $value = \get_option($option_name, '');
         $description = $args['description'] ?? '';
         
         echo '<input type="password" name="' . esc_attr($option_name) . '" value="' . esc_attr($value) . '" class="regular-text" />';
@@ -688,7 +688,7 @@ class AdminInterface {
     
     public function render_number_field($args) {
         $option_name = $args['option_name'];
-        $value = get_option($option_name, '');
+        $value = \get_option($option_name, '');
         $description = $args['description'] ?? '';
         $min = $args['min'] ?? '';
         $max = $args['max'] ?? '';
@@ -704,7 +704,7 @@ class AdminInterface {
     
     public function render_select_field($args) {
         $option_name = $args['option_name'];
-        $value = get_option($option_name, '');
+        $value = \get_option($option_name, '');
         $description = $args['description'] ?? '';
         $options = $args['options'] ?? array();
         
@@ -724,19 +724,19 @@ class AdminInterface {
      * Section render methods
      */
     public function render_general_section() {
-        echo '<p>' . __('Configure general plugin settings.', 'carbon-marketplace') . '</p>';
+        echo '<p>' . \__('Configure general plugin settings.', 'carbon-marketplace') . '</p>';
     }
     
     public function render_cache_section() {
-        echo '<p>' . __('Configure caching behavior to optimize performance.', 'carbon-marketplace') . '</p>';
+        echo '<p>' . \__('Configure caching behavior to optimize performance.', 'carbon-marketplace') . '</p>';
     }
     
     public function render_cnaught_section() {
-        echo '<p>' . __('Configure CNaught API integration settings.', 'carbon-marketplace') . '</p>';
+        echo '<p>' . \__('Configure CNaught API integration settings.', 'carbon-marketplace') . '</p>';
     }
     
     public function render_toucan_section() {
-        echo '<p>' . __('Configure Toucan Protocol integration settings.', 'carbon-marketplace') . '</p>';
+        echo '<p>' . \__('Configure Toucan Protocol integration settings.', 'carbon-marketplace') . '</p>';
     }
     
     /**
@@ -744,9 +744,9 @@ class AdminInterface {
      */
     public function show_admin_notices() {
         // Check if APIs are configured
-        $cnaught_enabled = get_option('carbon_marketplace_cnaught_enabled', false);
+        $cnaught_enabled = \get_option('carbon_marketplace_cnaught_enabled', false);
         $cnaught_configured = !empty(get_option('carbon_marketplace_cnaught_api_key'));
-        $toucan_enabled = get_option('carbon_marketplace_toucan_enabled', false);
+        $toucan_enabled = \get_option('carbon_marketplace_toucan_enabled', false);
         
         if (($cnaught_enabled && !$cnaught_configured) || (!$cnaught_enabled && !$toucan_enabled)) {
             ?>
@@ -769,7 +769,7 @@ class AdminInterface {
         check_ajax_referer('carbon_marketplace_admin', 'nonce');
         
         if (!current_user_can('manage_options')) {
-            wp_die(__('Insufficient permissions', 'carbon-marketplace'));
+            wp_die(\__('Insufficient permissions', 'carbon-marketplace'));
         }
         
         $vendor = sanitize_text_field($_POST['vendor'] ?? '');
@@ -780,7 +780,7 @@ class AdminInterface {
             if (is_wp_error($result)) {
                 wp_send_json_error($result->get_error_message());
             } else {
-                wp_send_json_success(__('Connection successful', 'carbon-marketplace'));
+                wp_send_json_success(\__('Connection successful', 'carbon-marketplace'));
             }
         } catch (Exception $e) {
             wp_send_json_error($e->getMessage());
@@ -794,12 +794,12 @@ class AdminInterface {
         check_ajax_referer('carbon_marketplace_admin', 'nonce');
         
         if (!current_user_can('manage_options')) {
-            wp_die(__('Insufficient permissions', 'carbon-marketplace'));
+            wp_die(\__('Insufficient permissions', 'carbon-marketplace'));
         }
         
         try {
             $this->cache_manager->invalidate_all_cache();
-            wp_send_json_success(__('Cache cleared successfully', 'carbon-marketplace'));
+            wp_send_json_success(\__('Cache cleared successfully', 'carbon-marketplace'));
         } catch (Exception $e) {
             wp_send_json_error($e->getMessage());
         }
@@ -812,7 +812,7 @@ class AdminInterface {
         check_ajax_referer('carbon_marketplace_admin', 'nonce');
         
         if (!current_user_can('manage_options')) {
-            wp_die(__('Insufficient permissions', 'carbon-marketplace'));
+            wp_die(\__('Insufficient permissions', 'carbon-marketplace'));
         }
         
         try {
@@ -832,7 +832,7 @@ class AdminInterface {
                 ]
             ]);
             
-            wp_send_json_success(__('Data synchronization completed', 'carbon-marketplace'));
+            wp_send_json_success(\__('Data synchronization completed', 'carbon-marketplace'));
         } catch (Exception $e) {
             wp_send_json_error($e->getMessage());
         }

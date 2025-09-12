@@ -46,17 +46,17 @@ class SearchAjaxHandler {
      */
     private function init_hooks(): void {
         // Register AJAX handlers for both logged-in and non-logged-in users
-        add_action('wp_ajax_carbon_marketplace_search', [$this, 'handle_search_request']);
-        add_action('wp_ajax_nopriv_carbon_marketplace_search', [$this, 'handle_search_request']);
+        \add_action('wp_ajax_carbon_marketplace_search', [$this, 'handle_search_request']);
+        \add_action('wp_ajax_nopriv_carbon_marketplace_search', [$this, 'handle_search_request']);
         
-        add_action('wp_ajax_carbon_marketplace_suggestions', [$this, 'handle_suggestions_request']);
-        add_action('wp_ajax_nopriv_carbon_marketplace_suggestions', [$this, 'handle_suggestions_request']);
+        \add_action('wp_ajax_carbon_marketplace_suggestions', [$this, 'handle_suggestions_request']);
+        \add_action('wp_ajax_nopriv_carbon_marketplace_suggestions', [$this, 'handle_suggestions_request']);
         
-        add_action('wp_ajax_carbon_marketplace_project_details', [$this, 'handle_project_details_request']);
-        add_action('wp_ajax_nopriv_carbon_marketplace_project_details', [$this, 'handle_project_details_request']);
+        \add_action('wp_ajax_carbon_marketplace_project_details', [$this, 'handle_project_details_request']);
+        \add_action('wp_ajax_nopriv_carbon_marketplace_project_details', [$this, 'handle_project_details_request']);
         
         // Enqueue scripts for AJAX
-        add_action('wp_enqueue_scripts', [$this, 'enqueue_ajax_scripts']);
+        \add_action('wp_enqueue_scripts', [$this, 'enqueue_ajax_scripts']);
     }
     
     /**

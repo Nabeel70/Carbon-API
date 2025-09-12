@@ -34,7 +34,7 @@ class CredentialManager {
     public function maybe_generate_encryption_key() {
         if (!get_option(self::ENCRYPTION_KEY_OPTION)) {
             $key = $this->generate_encryption_key();
-            update_option(self::ENCRYPTION_KEY_OPTION, $key);
+            \update_option(self::ENCRYPTION_KEY_OPTION, $key);
         }
     }
     
@@ -95,7 +95,7 @@ class CredentialManager {
      * @return string
      */
     private function encrypt($data) {
-        $key = get_option(self::ENCRYPTION_KEY_OPTION);
+        $key = \get_option(self::ENCRYPTION_KEY_OPTION);
         if (!$key) {
             return $data; // Return unencrypted if no key
         }
@@ -119,7 +119,7 @@ class CredentialManager {
      * @return string
      */
     private function decrypt($data) {
-        $key = get_option(self::ENCRYPTION_KEY_OPTION);
+        $key = \get_option(self::ENCRYPTION_KEY_OPTION);
         if (!$key) {
             return $data; // Return as-is if no key
         }
@@ -163,7 +163,7 @@ class CredentialManager {
             case 'toucan':
                 return $this->validate_toucan_credentials($credentials);
             default:
-                return new \WP_Error('invalid_vendor', __('Invalid vendor specified', 'carbon-marketplace'));
+                return new \WP_Error('invalid_vendor', \__('Invalid vendor specified', 'carbon-marketplace'));
         }
     }
     
@@ -178,12 +178,12 @@ class CredentialManager {
         $sandbox_mode = $credentials['sandbox_mode'] ?? false;
         
         if (empty($api_key)) {
-            return new \WP_Error('missing_api_key', __('CNaught API key is required', 'carbon-marketplace'));
+            return new \WP_Error('missing_api_key', \__('CNaught API key is required', 'carbon-marketplace'));
         }
         
         // Basic format validation
         if (!preg_match('/^[a-zA-Z0-9_-]+$/', $api_key)) {
-            return new \WP_Error('invalid_api_key_format', __('CNaught API key format is invalid', 'carbon-marketplace'));
+            return new \WP_Error('invalid_api_key_format', \__('CNaught API key format is invalid', 'carbon-marketplace'));
         }
         
         // Test API connection
@@ -204,14 +204,14 @@ class CredentialManager {
         if (!empty($api_key)) {
             // Basic format validation for The Graph API key
             if (!preg_match('/^[a-zA-Z0-9_-]+$/', $api_key)) {
-                return new \WP_Error('invalid_api_key_format', __('The Graph API key format is invalid', 'carbon-marketplace'));
+                return new \WP_Error('invalid_api_key_format', \__('The Graph API key format is invalid', 'carbon-marketplace'));
             }
         }
         
         // Validate network
         $valid_networks = ['polygon', 'mumbai'];
         if (!in_array($network, $valid_networks)) {
-            return new \WP_Error('invalid_network', __('Invalid network specified', 'carbon-marketplace'));
+            return new \WP_Error('invalid_network', \__('Invalid network specified', 'carbon-marketplace'));
         }
         
         // Test API connection
@@ -238,17 +238,17 @@ class CredentialManager {
         ));
         
         if (is_wp_error($response)) {
-            return new \WP_Error('connection_failed', __('Failed to connect to CNaught API', 'carbon-marketplace'));
+            return new \WP_Error('connection_failed', \__('Failed to connect to CNaught API', 'carbon-marketplace'));
         }
         
         $status_code = wp_remote_retrieve_response_code($response);
         
         if ($status_code === 401) {
-            return new \WP_Error('invalid_credentials', __('Invalid CNaught API credentials', 'carbon-marketplace'));
+            return new \WP_Error('invalid_credentials', \__('Invalid CNaught API credentials', 'carbon-marketplace'));
         } elseif ($status_code === 403) {
-            return new \WP_Error('access_denied', __('Access denied to CNaught API', 'carbon-marketplace'));
+            return new \WP_Error('access_denied', \__('Access denied to CNaught API', 'carbon-marketplace'));
         } elseif ($status_code !== 200) {
-            return new \WP_Error('api_error', sprintf(__('CNaught API returned status code: %d', 'carbon-marketplace'), $status_code));
+            return new \WP_Error('api_error', sprintf(\__('CNaught API returned status code: %d', 'carbon-marketplace'), $status_code));
         }
         
         return true;
@@ -289,24 +289,24 @@ class CredentialManager {
         ));
         
         if (is_wp_error($response)) {
-            return new \WP_Error('connection_failed', __('Failed to connect to Toucan subgraph', 'carbon-marketplace'));
+            return new \WP_Error('connection_failed', \__('Failed to connect to Toucan subgraph', 'carbon-marketplace'));
         }
         
         $status_code = wp_remote_retrieve_response_code($response);
         
         if ($status_code === 401) {
-            return new \WP_Error('invalid_credentials', __('Invalid The Graph API key', 'carbon-marketplace'));
+            return new \WP_Error('invalid_credentials', \__('Invalid The Graph API key', 'carbon-marketplace'));
         } elseif ($status_code === 403) {
-            return new \WP_Error('access_denied', __('Access denied to Toucan subgraph', 'carbon-marketplace'));
+            return new \WP_Error('access_denied', \__('Access denied to Toucan subgraph', 'carbon-marketplace'));
         } elseif ($status_code !== 200) {
-            return new \WP_Error('api_error', sprintf(__('Toucan subgraph returned status code: %d', 'carbon-marketplace'), $status_code));
+            return new \WP_Error('api_error', sprintf(\__('Toucan subgraph returned status code: %d', 'carbon-marketplace'), $status_code));
         }
         
         $body = wp_remote_retrieve_body($response);
         $data = json_decode($body, true);
         
         if (isset($data['errors'])) {
-            return new \WP_Error('graphql_error', __('GraphQL query failed', 'carbon-marketplace'));
+            return new \WP_Error('graphql_error', \__('GraphQL query failed', 'carbon-marketplace'));
         }
         
         return true;
@@ -322,16 +322,16 @@ class CredentialManager {
         switch ($vendor) {
             case 'cnaught':
                 return array(
-                    'api_key' => get_option('carbon_marketplace_cnaught_api_key', ''),
-                    'sandbox_mode' => get_option('carbon_marketplace_cnaught_sandbox_mode', false),
-                    'enabled' => get_option('carbon_marketplace_cnaught_enabled', false),
+                    'api_key' => \get_option('carbon_marketplace_cnaught_api_key', ''),
+                    'sandbox_mode' => \get_option('carbon_marketplace_cnaught_sandbox_mode', false),
+                    'enabled' => \get_option('carbon_marketplace_cnaught_enabled', false),
                 );
                 
             case 'toucan':
                 return array(
-                    'api_key' => get_option('carbon_marketplace_toucan_api_key', ''),
-                    'network' => get_option('carbon_marketplace_toucan_network', 'polygon'),
-                    'enabled' => get_option('carbon_marketplace_toucan_enabled', false),
+                    'api_key' => \get_option('carbon_marketplace_toucan_api_key', ''),
+                    'network' => \get_option('carbon_marketplace_toucan_network', 'polygon'),
+                    'enabled' => \get_option('carbon_marketplace_toucan_enabled', false),
                 );
                 
             default:
@@ -355,19 +355,19 @@ class CredentialManager {
         
         switch ($vendor) {
             case 'cnaught':
-                update_option('carbon_marketplace_cnaught_api_key', $credentials['api_key'] ?? '');
-                update_option('carbon_marketplace_cnaught_sandbox_mode', $credentials['sandbox_mode'] ?? false);
-                update_option('carbon_marketplace_cnaught_enabled', $credentials['enabled'] ?? false);
+                \update_option('carbon_marketplace_cnaught_api_key', $credentials['api_key'] ?? '');
+                \update_option('carbon_marketplace_cnaught_sandbox_mode', $credentials['sandbox_mode'] ?? false);
+                \update_option('carbon_marketplace_cnaught_enabled', $credentials['enabled'] ?? false);
                 break;
                 
             case 'toucan':
-                update_option('carbon_marketplace_toucan_api_key', $credentials['api_key'] ?? '');
-                update_option('carbon_marketplace_toucan_network', $credentials['network'] ?? 'polygon');
-                update_option('carbon_marketplace_toucan_enabled', $credentials['enabled'] ?? false);
+                \update_option('carbon_marketplace_toucan_api_key', $credentials['api_key'] ?? '');
+                \update_option('carbon_marketplace_toucan_network', $credentials['network'] ?? 'polygon');
+                \update_option('carbon_marketplace_toucan_enabled', $credentials['enabled'] ?? false);
                 break;
                 
             default:
-                return new \WP_Error('invalid_vendor', __('Invalid vendor specified', 'carbon-marketplace'));
+                return new \WP_Error('invalid_vendor', \__('Invalid vendor specified', 'carbon-marketplace'));
         }
         
         return true;
@@ -409,14 +409,14 @@ class CredentialManager {
         $vendors = array();
         
         // Check CNaught
-        $cnaught_enabled = get_option('carbon_marketplace_cnaught_enabled', false);
-        $cnaught_api_key = get_option('carbon_marketplace_cnaught_api_key', '');
+        $cnaught_enabled = \get_option('carbon_marketplace_cnaught_enabled', false);
+        $cnaught_api_key = \get_option('carbon_marketplace_cnaught_api_key', '');
         if ($cnaught_enabled && !empty($cnaught_api_key)) {
             $vendors[] = 'cnaught';
         }
         
         // Check Toucan
-        $toucan_enabled = get_option('carbon_marketplace_toucan_enabled', false);
+        $toucan_enabled = \get_option('carbon_marketplace_toucan_enabled', false);
         if ($toucan_enabled) {
             $vendors[] = 'toucan';
         }
@@ -447,7 +447,7 @@ class CredentialManager {
             'enabled' => $enabled,
             'configured' => false,
             'status' => 'disabled',
-            'message' => __('Disabled', 'carbon-marketplace'),
+            'message' => \__('Disabled', 'carbon-marketplace'),
         );
         
         if (!$enabled) {
@@ -460,17 +460,17 @@ class CredentialManager {
                 if (!empty($api_key)) {
                     $status['configured'] = true;
                     $status['status'] = 'enabled';
-                    $status['message'] = __('Enabled and configured', 'carbon-marketplace');
+                    $status['message'] = \__('Enabled and configured', 'carbon-marketplace');
                 } else {
                     $status['status'] = 'error';
-                    $status['message'] = __('Enabled but not configured', 'carbon-marketplace');
+                    $status['message'] = \__('Enabled but not configured', 'carbon-marketplace');
                 }
                 break;
                 
             case 'toucan':
                 $status['configured'] = true;
                 $status['status'] = 'enabled';
-                $status['message'] = __('Enabled and configured', 'carbon-marketplace');
+                $status['message'] = \__('Enabled and configured', 'carbon-marketplace');
                 break;
         }
         
@@ -486,7 +486,7 @@ class CredentialManager {
         return array(
             'cnaught' => $this->get_credentials('cnaught'),
             'toucan' => $this->get_credentials('toucan'),
-            'encryption_key' => get_option(self::ENCRYPTION_KEY_OPTION),
+            'encryption_key' => \get_option(self::ENCRYPTION_KEY_OPTION),
         );
     }
     
@@ -498,12 +498,12 @@ class CredentialManager {
      */
     public function import_credentials($data) {
         if (!is_array($data)) {
-            return new \WP_Error('invalid_data', __('Invalid credentials data', 'carbon-marketplace'));
+            return new \WP_Error('invalid_data', \__('Invalid credentials data', 'carbon-marketplace'));
         }
         
         // Import encryption key first
         if (isset($data['encryption_key'])) {
-            update_option(self::ENCRYPTION_KEY_OPTION, $data['encryption_key']);
+            \update_option(self::ENCRYPTION_KEY_OPTION, $data['encryption_key']);
         }
         
         // Import vendor credentials

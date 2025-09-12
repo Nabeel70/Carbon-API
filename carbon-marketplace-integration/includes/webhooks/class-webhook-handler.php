@@ -29,26 +29,26 @@ class WebhookHandler {
      * Initialize webhook endpoints
      */
     public function init(): void {
-        add_action('rest_api_init', [$this, 'register_webhook_endpoints']);
+        \add_action('rest_api_init', [$this, 'register_webhook_endpoints']);
     }
     
     /**
      * Register REST API endpoints for webhooks
      */
     public function register_webhook_endpoints(): void {
-        register_rest_route('carbon-marketplace/v1', '/webhooks/cnaught', [
+        \register_rest_route('carbon-marketplace/v1', '/webhooks/cnaught', [
             'methods' => 'POST',
             'callback' => [$this, 'handle_cnaught_webhook'],
             'permission_callback' => [$this, 'verify_webhook_signature']
         ]);
         
-        register_rest_route('carbon-marketplace/v1', '/webhooks/toucan', [
+        \register_rest_route('carbon-marketplace/v1', '/webhooks/toucan', [
             'methods' => 'POST',
             'callback' => [$this, 'handle_toucan_webhook'],
             'permission_callback' => [$this, 'verify_webhook_signature']
         ]);
         
-        register_rest_route('carbon-marketplace/v1', '/webhooks/generic', [
+        \register_rest_route('carbon-marketplace/v1', '/webhooks/generic', [
             'methods' => 'POST',
             'callback' => [$this, 'handle_generic_webhook'],
             'permission_callback' => [$this, 'verify_webhook_signature']
@@ -132,7 +132,7 @@ class WebhookHandler {
             $this->log_webhook($vendor, $payload);
             
             // Allow plugins to handle custom webhooks
-            $result = apply_filters('carbon_marketplace_handle_webhook', null, $vendor, $payload);
+            $result = \apply_filters('carbon_marketplace_handle_webhook', null, $vendor, $payload);
             
             if ($result !== null) {
                 return new \WP_REST_Response($result);
@@ -193,7 +193,7 @@ class WebhookHandler {
         $this->update_order($order);
         
         // Trigger fulfillment hooks
-        do_action('carbon_marketplace_order_fulfilled', $order, $payload);
+        \do_action('carbon_marketplace_order_fulfilled', $order, $payload);
         
         return new \WP_REST_Response(['message' => 'Order fulfillment processed'], 200);
     }
@@ -220,7 +220,7 @@ class WebhookHandler {
         $this->update_order($order);
         
         // Trigger retirement hooks
-        do_action('carbon_marketplace_order_retired', $order, $payload);
+        \do_action('carbon_marketplace_order_retired', $order, $payload);
         
         return new \WP_REST_Response(['message' => 'Order retirement processed'], 200);
     }
@@ -241,7 +241,7 @@ class WebhookHandler {
             $order->set_retirement_data($retirement_data);
             $this->update_order($order);
             
-            do_action('carbon_marketplace_toucan_retirement', $order, $payload);
+            \do_action('carbon_marketplace_toucan_retirement', $order, $payload);
         }
         
         return new \WP_REST_Response(['message' => 'Toucan retirement processed'], 200);
@@ -258,7 +258,7 @@ class WebhookHandler {
         $this->log_token_transfer($transfer_data);
         
         // Trigger transfer hooks
-        do_action('carbon_marketplace_token_transfer', $transfer_data, $payload);
+        \do_action('carbon_marketplace_token_transfer', $transfer_data, $payload);
         
         return new \WP_REST_Response(['message' => 'Token transfer processed'], 200);
     }
@@ -290,7 +290,7 @@ class WebhookHandler {
      * Get webhook secret for vendor
      */
     private function get_webhook_secret(string $vendor): string {
-        $secrets = get_option('carbon_marketplace_webhook_secrets', []);
+        $secrets = \get_option('carbon_marketplace_webhook_secrets', []);
         return $secrets[$vendor] ?? '';
     }
     
@@ -372,7 +372,7 @@ class WebhookHandler {
                 'status' => $status,
                 'payload' => json_encode($payload),
                 'error_message' => $error,
-                'created_at' => current_time('mysql')
+                'created_at' => \current_time('mysql')
             ],
             ['%s', '%s', '%s', '%s', '%s']
         );

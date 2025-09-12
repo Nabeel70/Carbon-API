@@ -53,7 +53,7 @@ class CacheManager {
      * @param array $config Configuration options
      */
     public function __construct($config = []) {
-        $this->config = wp_parse_args($config, [
+        $this->config = \wp_parse_args($config, [
             'enable_cache' => true,
             'cache_prefix' => 'carbon_marketplace_',
             'default_ttl' => $this->default_ttl,
@@ -83,7 +83,7 @@ class CacheManager {
         }
 
         $cache_key = $this->build_cache_key('portfolios', $vendor);
-        $cached_data = get_transient($cache_key);
+        $cached_data = \get_transient($cache_key);
 
         if ($cached_data === false) {
             return null;
@@ -110,15 +110,15 @@ class CacheManager {
         
         $compressed_data = $this->compress_data($portfolios);
         
-        $result = set_transient($cache_key, $compressed_data, $ttl);
+        $result = \set_transient($cache_key, $compressed_data, $ttl);
         
         if ($result) {
             $this->update_cache_metadata($cache_key, [
                 'type' => 'portfolios',
                 'vendor' => $vendor,
                 'count' => count($portfolios),
-                'cached_at' => current_time('timestamp'),
-                'expires_at' => current_time('timestamp') + $ttl,
+                'cached_at' => \current_time('timestamp'),
+                'expires_at' => \current_time('timestamp') + $ttl,
             ]);
         }
 
@@ -138,7 +138,7 @@ class CacheManager {
         }
 
         $cache_key = $this->build_cache_key('projects', $vendor, $filters);
-        $cached_data = get_transient($cache_key);
+        $cached_data = \get_transient($cache_key);
 
         if ($cached_data === false) {
             return null;
@@ -166,7 +166,7 @@ class CacheManager {
         
         $compressed_data = $this->compress_data($projects);
         
-        $result = set_transient($cache_key, $compressed_data, $ttl);
+        $result = \set_transient($cache_key, $compressed_data, $ttl);
         
         if ($result) {
             $this->update_cache_metadata($cache_key, [
@@ -174,8 +174,8 @@ class CacheManager {
                 'vendor' => $vendor,
                 'filters' => $filters,
                 'count' => count($projects),
-                'cached_at' => current_time('timestamp'),
-                'expires_at' => current_time('timestamp') + $ttl,
+                'cached_at' => \current_time('timestamp'),
+                'expires_at' => \current_time('timestamp') + $ttl,
             ]);
         }
 
@@ -195,7 +195,7 @@ class CacheManager {
         }
 
         $cache_key = $this->build_cache_key('project_details', $vendor, $project_id);
-        $cached_data = get_transient($cache_key);
+        $cached_data = \get_transient($cache_key);
 
         if ($cached_data === false) {
             return null;
@@ -229,15 +229,15 @@ class CacheManager {
         // Store as array to avoid serialization issues
         $compressed_data = $this->compress_data($project->to_array());
         
-        $result = set_transient($cache_key, $compressed_data, $ttl);
+        $result = \set_transient($cache_key, $compressed_data, $ttl);
         
         if ($result) {
             $this->update_cache_metadata($cache_key, [
                 'type' => 'project_details',
                 'vendor' => $project->vendor,
                 'project_id' => $project->id,
-                'cached_at' => current_time('timestamp'),
-                'expires_at' => current_time('timestamp') + $ttl,
+                'cached_at' => \current_time('timestamp'),
+                'expires_at' => \current_time('timestamp') + $ttl,
             ]);
         }
 
@@ -256,7 +256,7 @@ class CacheManager {
         }
 
         $cache_key = $this->build_cache_key('search_results', '', $search_params);
-        $cached_data = get_transient($cache_key);
+        $cached_data = \get_transient($cache_key);
 
         if ($cached_data === false) {
             return null;
@@ -283,15 +283,15 @@ class CacheManager {
         
         $compressed_data = $this->compress_data($results);
         
-        $result = set_transient($cache_key, $compressed_data, $ttl);
+        $result = \set_transient($cache_key, $compressed_data, $ttl);
         
         if ($result) {
             $this->update_cache_metadata($cache_key, [
                 'type' => 'search_results',
                 'search_params' => $search_params,
                 'count' => count($results),
-                'cached_at' => current_time('timestamp'),
-                'expires_at' => current_time('timestamp') + $ttl,
+                'cached_at' => \current_time('timestamp'),
+                'expires_at' => \current_time('timestamp') + $ttl,
             ]);
         }
 
@@ -324,7 +324,7 @@ class CacheManager {
             // Remove the '_transient_' prefix to get the actual transient name
             $transient_name = str_replace('_transient_', '', $transient_key);
             
-            if (delete_transient($transient_name)) {
+            if (\delete_transient($transient_name)) {
                 $invalidated++;
             }
         }
@@ -370,7 +370,7 @@ class CacheManager {
      * @return array Cache statistics
      */
     public function get_cache_stats() {
-        $metadata = get_option($this->cache_prefix . 'metadata', []);
+        $metadata = \get_option($this->cache_prefix . 'metadata', []);
         
         $stats = [
             'total_entries' => count($metadata),
@@ -380,7 +380,7 @@ class CacheManager {
             'expired_entries' => 0,
         ];
 
-        $current_time = current_time('timestamp');
+        $current_time = \current_time('timestamp');
 
         foreach ($metadata as $cache_key => $meta) {
             // Count by type
@@ -434,7 +434,7 @@ class CacheManager {
             try {
                 $data = call_user_func($callback);
                 
-                if (is_wp_error($data)) {
+                if (\is_wp_error($data)) {
                     $results[$type . '_' . $vendor] = [
                         'success' => false,
                         'error' => $data->get_error_message(),
@@ -475,15 +475,15 @@ class CacheManager {
      * @return int Number of entries cleaned up
      */
     public function cleanup_expired_cache() {
-        $metadata = get_option($this->cache_prefix . 'metadata', []);
-        $current_time = current_time('timestamp');
+        $metadata = \get_option($this->cache_prefix . 'metadata', []);
+        $current_time = \current_time('timestamp');
         $cleaned = 0;
 
         foreach ($metadata as $cache_key => $meta) {
             if (isset($meta['expires_at']) && $meta['expires_at'] < $current_time) {
                 // Check if transient actually exists and delete it
-                if (get_transient($cache_key) !== false) {
-                    delete_transient($cache_key);
+                if (\get_transient($cache_key) !== false) {
+                    \delete_transient($cache_key);
                 }
                 
                 unset($metadata[$cache_key]);
@@ -492,7 +492,7 @@ class CacheManager {
         }
 
         if ($cleaned > 0) {
-            update_option($this->cache_prefix . 'metadata', $metadata);
+            \update_option($this->cache_prefix . 'metadata', $metadata);
         }
 
         return $cleaned;
@@ -573,7 +573,7 @@ class CacheManager {
      * @param array $metadata Metadata to store
      */
     private function update_cache_metadata($cache_key, $metadata) {
-        $all_metadata = get_option($this->cache_prefix . 'metadata', []);
+        $all_metadata = \get_option($this->cache_prefix . 'metadata', []);
         $all_metadata[$cache_key] = $metadata;
         
         // Limit metadata size
@@ -587,7 +587,7 @@ class CacheManager {
             $all_metadata = array_slice($sorted, -$this->config['max_cache_size'], null, true);
         }
         
-        update_option($this->cache_prefix . 'metadata', $all_metadata);
+        \update_option($this->cache_prefix . 'metadata', $all_metadata);
     }
 
     /**
@@ -596,7 +596,7 @@ class CacheManager {
      * @param string $pattern Pattern to match for cleanup
      */
     private function cleanup_cache_metadata($pattern) {
-        $all_metadata = get_option($this->cache_prefix . 'metadata', []);
+        $all_metadata = \get_option($this->cache_prefix . 'metadata', []);
         $pattern_regex = '/^' . str_replace('*', '.*', preg_quote($this->cache_prefix . $pattern, '/')) . '/';
         
         foreach ($all_metadata as $cache_key => $metadata) {
@@ -605,7 +605,7 @@ class CacheManager {
             }
         }
         
-        update_option($this->cache_prefix . 'metadata', $all_metadata);
+        \update_option($this->cache_prefix . 'metadata', $all_metadata);
     }
 
     /**
