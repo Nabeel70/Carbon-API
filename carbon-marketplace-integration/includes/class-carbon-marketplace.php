@@ -14,6 +14,7 @@ use CarbonMarketplace\Cache\CacheManager;
 use CarbonMarketplace\Search\SearchEngine;
 use CarbonMarketplace\Ajax\SearchAjaxHandler;
 use CarbonMarketplace\Admin\AdminInterface;
+use CarbonMarketplace\Checkout\CheckoutManager;
 use CarbonMarketplace\Webhooks\WebhookHandler;
 
 /**
@@ -71,6 +72,13 @@ class CarbonMarketplace {
     private $admin_interface;
     
     /**
+     * Checkout Manager instance
+     *
+     * @var \CarbonMarketplace\Checkout\CheckoutManager
+     */
+    private $checkout_manager;
+    
+    /**
      * Webhook Handler instance
      *
      * @var WebhookHandler
@@ -111,9 +119,6 @@ class CarbonMarketplace {
         $this->register_webhook_endpoints();
         $this->enqueue_scripts();
         
-        // Initialize AJAX handlers
-        $this->ajax_handler->init();
-        
         // Initialize admin interface
         if (is_admin()) {
             $this->admin_interface->init();
@@ -130,10 +135,11 @@ class CarbonMarketplace {
         $this->database = new Database();
         $this->cache_manager = new CacheManager();
         $this->api_manager = new ApiManager($this->cache_manager);
-        $this->search_engine = new SearchEngine($this->database, $this->cache_manager);
+        $this->checkout_manager = new CheckoutManager($this->api_manager, $this->database);
+        $this->search_engine = new SearchEngine($this->database);
         $this->ajax_handler = new SearchAjaxHandler($this->search_engine);
         $this->admin_interface = new AdminInterface($this->api_manager, $this->cache_manager);
-        $this->webhook_handler = new WebhookHandler($this->database, $this->api_manager);
+        $this->webhook_handler = new WebhookHandler($this->checkout_manager, $this->database);
     }
     
     /**
