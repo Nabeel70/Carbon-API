@@ -18,8 +18,15 @@ use WP_Error;
  */
 class CheckoutManager {
     
-    private ApiManager $api_manager;
-    private Database $database;
+    /**
+     * @var ApiManager
+     */
+    private $api_manager;
+    
+    /**
+     * @var Database
+     */
+    private $database;
     
     public function __construct(ApiManager $api_manager, Database $database) {
         $this->api_manager = $api_manager;
@@ -29,7 +36,7 @@ class CheckoutManager {
     /**
      * Create checkout session with vendor
      */
-    public function create_checkout_session(array $request_data): CheckoutSession|WP_Error {
+    public function create_checkout_session(array $request_data) {
         try {
             // Validate request data
             $validation = $this->validate_checkout_request($request_data);
@@ -77,7 +84,7 @@ class CheckoutManager {
     /**
      * Handle checkout completion
      */
-    public function handle_checkout_completion(string $session_id, array $completion_data): bool {
+    public function handle_checkout_completion(string $session_id, array $completion_data) {
         try {
             // Get session from database
             $session = $this->get_checkout_session($session_id);
@@ -111,7 +118,7 @@ class CheckoutManager {
     /**
      * Get checkout session by ID
      */
-    public function get_checkout_session(string $session_id): ?CheckoutSession {
+    public function get_checkout_session(string $session_id) {
         global $wpdb;
         
         $table_name = $this->database->get_table_name('checkout_sessions');
@@ -129,7 +136,7 @@ class CheckoutManager {
     /**
      * Validate checkout request data
      */
-    private function validate_checkout_request(array $data): bool|WP_Error {
+    private function validate_checkout_request(array $data) {
         $required_fields = ['amount_kg', 'success_url', 'cancel_url'];
         
         foreach ($required_fields as $field) {
@@ -156,7 +163,7 @@ class CheckoutManager {
     /**
      * Store checkout session in database
      */
-    private function store_checkout_session(CheckoutSession $session): bool {
+    private function store_checkout_session(CheckoutSession $session) {
         global $wpdb;
         
         $table_name = $this->database->get_table_name('checkout_sessions');
@@ -185,7 +192,7 @@ class CheckoutManager {
     /**
      * Update checkout session in database
      */
-    private function update_checkout_session(CheckoutSession $session): bool {
+    private function update_checkout_session(CheckoutSession $session) {
         global $wpdb;
         
         $table_name = $this->database->get_table_name('checkout_sessions');
@@ -208,7 +215,7 @@ class CheckoutManager {
     /**
      * Create order from completed checkout session
      */
-    private function create_order_from_session(CheckoutSession $session, array $completion_data): Order|WP_Error {
+    private function create_order_from_session(CheckoutSession $session, array $completion_data) {
         try {
             $order_data = [
                 'vendor_order_id' => $completion_data['order_id'] ?? $session->get_id(),
@@ -242,7 +249,7 @@ class CheckoutManager {
     /**
      * Get checkout statistics
      */
-    public function get_checkout_statistics(): array {
+    public function get_checkout_statistics() {
         global $wpdb;
         
         $sessions_table = $this->database->get_table_name('checkout_sessions');

@@ -44,7 +44,7 @@ class SearchAjaxHandler {
     /**
      * Initialize WordPress hooks
      */
-    private function init_hooks(): void {
+    private function init_hooks() {
         // Register AJAX handlers for both logged-in and non-logged-in users
         \add_action('wp_ajax_carbon_marketplace_search', [$this, 'handle_search_request']);
         \add_action('wp_ajax_nopriv_carbon_marketplace_search', [$this, 'handle_search_request']);
@@ -62,7 +62,7 @@ class SearchAjaxHandler {
     /**
      * Handle search AJAX request
      */
-    public function handle_search_request(): void {
+    public function handle_search_request() {
         try {
             // Verify nonce for security
             if (!$this->verify_nonce()) {
@@ -122,7 +122,7 @@ class SearchAjaxHandler {
     /**
      * Handle suggestions AJAX request
      */
-    public function handle_suggestions_request(): void {
+    public function handle_suggestions_request() {
         try {
             // Verify nonce for security
             if (!$this->verify_nonce()) {
@@ -168,7 +168,7 @@ class SearchAjaxHandler {
     /**
      * Handle project details AJAX request
      */
-    public function handle_project_details_request(): void {
+    public function handle_project_details_request() {
         try {
             // Verify nonce for security
             if (!$this->verify_nonce()) {
@@ -214,7 +214,7 @@ class SearchAjaxHandler {
     /**
      * Enqueue AJAX scripts
      */
-    public function enqueue_ajax_scripts(): void {
+    public function enqueue_ajax_scripts() {
         // Enqueue jQuery if not already loaded
         wp_enqueue_script('jquery');
         
@@ -237,7 +237,7 @@ class SearchAjaxHandler {
      *
      * @return bool True if nonce is valid
      */
-    private function verify_nonce(): bool {
+    private function verify_nonce() {
         $nonce = $_POST['nonce'] ?? '';
         return wp_verify_nonce($nonce, $this->nonce_action);
     }
@@ -292,7 +292,7 @@ class SearchAjaxHandler {
      *
      * @param array $data Response data
      */
-    private function send_json_response(array $data): void {
+    private function send_json_response(array $data) {
         wp_send_json($data);
     }
     
@@ -302,7 +302,7 @@ class SearchAjaxHandler {
      * @param string $message Error message
      * @param int $status_code HTTP status code
      */
-    private function send_error_response(string $message, int $status_code = 400): void {
+    private function send_error_response(string $message, int $status_code = 400) {
         status_header($status_code);
         wp_send_json([
             'success' => false,
@@ -318,7 +318,7 @@ class SearchAjaxHandler {
      *
      * @return array Search statistics
      */
-    public function get_search_statistics(): array {
+    public function get_search_statistics() {
         // This could be expanded to track search metrics
         return [
             'total_searches' => get_option('carbon_marketplace_total_searches', 0),
@@ -333,7 +333,7 @@ class SearchAjaxHandler {
      * @param SearchQuery $query Search query
      * @param int $result_count Number of results
      */
-    private function track_search(SearchQuery $query, int $result_count): void {
+    private function track_search(SearchQuery $query, int $result_count) {
         // Increment total searches
         $total_searches = get_option('carbon_marketplace_total_searches', 0);
         update_option('carbon_marketplace_total_searches', $total_searches + 1);

@@ -452,6 +452,42 @@ class Order {
     }
     
     /**
+     * Set order status
+     *
+     * @param string $status New status
+     */
+    public function set_status($status) {
+        $this->status = $status;
+    }
+    
+    /**
+     * Set project allocations
+     *
+     * @param array $allocations Project allocations
+     */
+    public function set_project_allocations($allocations) {
+        $this->project_allocations = $allocations;
+    }
+    
+    /**
+     * Set retirement data
+     *
+     * @param array $retirement_data Retirement data
+     */
+    public function set_retirement_data($retirement_data) {
+        $this->metadata['retirement_data'] = $retirement_data;
+    }
+    
+    /**
+     * Get order ID
+     *
+     * @return string Order ID
+     */
+    public function get_id() {
+        return $this->id;
+    }
+
+    /**
      * Get formatted total price
      *
      * @return string Formatted total price with currency symbol

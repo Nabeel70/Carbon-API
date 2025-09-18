@@ -17,8 +17,15 @@ use WP_Error;
  */
 class WebhookHandler {
     
-    private CheckoutManager $checkout_manager;
-    private Database $database;
+    /**
+     * @var CheckoutManager
+     */
+    private $checkout_manager;
+    
+    /**
+     * @var Database
+     */
+    private $database;
     
     public function __construct(CheckoutManager $checkout_manager, Database $database) {
         $this->checkout_manager = $checkout_manager;
@@ -28,14 +35,14 @@ class WebhookHandler {
     /**
      * Initialize webhook endpoints
      */
-    public function init(): void {
+    public function init() {
         \add_action('rest_api_init', [$this, 'register_webhook_endpoints']);
     }
     
     /**
      * Register REST API endpoints for webhooks
      */
-    public function register_webhook_endpoints(): void {
+    public function register_webhook_endpoints() {
         \register_rest_route('carbon-marketplace/v1', '/webhooks/cnaught', [
             'methods' => 'POST',
             'callback' => [$this, 'handle_cnaught_webhook'],
@@ -58,7 +65,7 @@ class WebhookHandler {
     /**
      * Handle CNaught webhook
      */
-    public function handle_cnaught_webhook(\WP_REST_Request $request): \WP_REST_Response {
+    public function handle_cnaught_webhook(\WP_REST_Request $request) {
         try {
             $payload = $request->get_json_params();
             
@@ -92,7 +99,7 @@ class WebhookHandler {
     /**
      * Handle Toucan webhook
      */
-    public function handle_toucan_webhook(\WP_REST_Request $request): \WP_REST_Response {
+    public function handle_toucan_webhook(\WP_REST_Request $request) {
         try {
             $payload = $request->get_json_params();
             
@@ -124,7 +131,7 @@ class WebhookHandler {
     /**
      * Handle generic webhook for future vendors
      */
-    public function handle_generic_webhook(\WP_REST_Request $request): \WP_REST_Response {
+    public function handle_generic_webhook(\WP_REST_Request $request) {
         try {
             $payload = $request->get_json_params();
             $vendor = $request->get_header('X-Vendor-Name') ?? 'unknown';
@@ -149,7 +156,7 @@ class WebhookHandler {
     /**
      * Handle checkout completion webhook
      */
-    private function handle_checkout_completion(array $payload): \WP_REST_Response {
+    private function handle_checkout_completion(array $payload) {
         $session_id = $payload['data']['session_id'] ?? '';
         
         if (empty($session_id)) {
@@ -174,7 +181,7 @@ class WebhookHandler {
     /**
      * Handle order fulfillment webhook
      */
-    private function handle_order_fulfillment(array $payload): \WP_REST_Response {
+    private function handle_order_fulfillment(array $payload) {
         $order_id = $payload['data']['order_id'] ?? '';
         
         if (empty($order_id)) {
@@ -201,7 +208,7 @@ class WebhookHandler {
     /**
      * Handle order retirement webhook
      */
-    private function handle_order_retirement(array $payload): \WP_REST_Response {
+    private function handle_order_retirement(array $payload) {
         $order_id = $payload['data']['order_id'] ?? '';
         
         if (empty($order_id)) {
@@ -228,7 +235,7 @@ class WebhookHandler {
     /**
      * Handle Toucan retirement webhook
      */
-    private function handle_toucan_retirement(array $payload): \WP_REST_Response {
+    private function handle_toucan_retirement(array $payload) {
         // Toucan-specific retirement handling
         $transaction_hash = $payload['data']['transaction_hash'] ?? '';
         $retirement_data = $payload['data'] ?? [];
@@ -250,7 +257,7 @@ class WebhookHandler {
     /**
      * Handle token transfer webhook
      */
-    private function handle_token_transfer(array $payload): \WP_REST_Response {
+    private function handle_token_transfer(array $payload) {
         // Handle token transfer events from Toucan
         $transfer_data = $payload['data'] ?? [];
         
@@ -266,7 +273,7 @@ class WebhookHandler {
     /**
      * Verify webhook signature
      */
-    public function verify_webhook_signature(\WP_REST_Request $request): bool {
+    public function verify_webhook_signature(\WP_REST_Request $request) {
         $signature = $request->get_header('X-Signature') ?? '';
         $vendor = $request->get_header('X-Vendor-Name') ?? '';
         
@@ -289,7 +296,7 @@ class WebhookHandler {
     /**
      * Get webhook secret for vendor
      */
-    private function get_webhook_secret(string $vendor): string {
+    private function get_webhook_secret(string $vendor) {
         $secrets = \get_option('carbon_marketplace_webhook_secrets', []);
         return $secrets[$vendor] ?? '';
     }
@@ -297,10 +304,10 @@ class WebhookHandler {
     /**
      * Get order by vendor order ID
      */
-    private function get_order_by_vendor_id(string $vendor_order_id): ?Order {
+    private function get_order_by_vendor_id(string $vendor_order_id) {
         global $wpdb;
         
-        $table_name = $this->database->get_table_name('orders');
+        $table_name = $this->database->get_orders_table();
         $row = $wpdb->get_row(
             $wpdb->prepare("SELECT * FROM {$table_name} WHERE vendor_order_id = %s", $vendor_order_id)
         );
@@ -315,7 +322,7 @@ class WebhookHandler {
     /**
      * Find order by retirement data
      */
-    private function find_order_by_retirement_data(array $retirement_data): ?Order {
+    private function find_order_by_retirement_data(array $retirement_data) {
         // Implementation depends on how retirement data links to orders
         // This is a placeholder for Toucan-specific logic
         return null;
@@ -324,14 +331,14 @@ class WebhookHandler {
     /**
      * Update order in database
      */
-    private function update_order(Order $order): bool {
+    private function update_order(Order $order) {
         return $this->database->update_order($order->get_id(), $order->to_array());
     }
     
     /**
      * Log webhook for debugging
      */
-    private function log_webhook(string $vendor, array $payload): void {
+    private function log_webhook(string $vendor, array $payload) {
         if (defined('WP_DEBUG') && WP_DEBUG) {
             error_log("Webhook received from {$vendor}: " . json_encode($payload));
         }
@@ -343,7 +350,7 @@ class WebhookHandler {
     /**
      * Log webhook error
      */
-    private function log_webhook_error(string $vendor, string $error, array $payload): void {
+    private function log_webhook_error(string $vendor, string $error, array $payload) {
         error_log("Webhook error from {$vendor}: {$error}");
         $this->store_webhook_log($vendor, 'error', $payload, $error);
     }
@@ -351,7 +358,7 @@ class WebhookHandler {
     /**
      * Log token transfer
      */
-    private function log_token_transfer(array $transfer_data): void {
+    private function log_token_transfer(array $transfer_data) {
         if (defined('WP_DEBUG') && WP_DEBUG) {
             error_log("Token transfer: " . json_encode($transfer_data));
         }
@@ -360,7 +367,7 @@ class WebhookHandler {
     /**
      * Store webhook log in database
      */
-    private function store_webhook_log(string $vendor, string $status, array $payload, string $error = ''): void {
+    private function store_webhook_log(string $vendor, string $status, array $payload, string $error = '') {
         global $wpdb;
         
         $table_name = $wpdb->prefix . 'carbon_marketplace_webhook_logs';
@@ -381,7 +388,7 @@ class WebhookHandler {
     /**
      * Get webhook statistics
      */
-    public function get_webhook_statistics(): array {
+    public function get_webhook_statistics() {
         global $wpdb;
         
         $table_name = $wpdb->prefix . 'carbon_marketplace_webhook_logs';

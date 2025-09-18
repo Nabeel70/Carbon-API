@@ -46,7 +46,7 @@ class Database {
      *
      * @return string Full table name
      */
-    public function get_projects_table(): string {
+    public function get_projects_table() {
         return $this->table_prefix . 'projects';
     }
     
@@ -55,7 +55,7 @@ class Database {
      *
      * @return string Full table name
      */
-    public function get_orders_table(): string {
+    public function get_orders_table() {
         return $this->table_prefix . 'orders';
     }
     
@@ -65,7 +65,7 @@ class Database {
      * @param string $table_name Table name
      * @return bool True if table exists
      */
-    public function table_exists(string $table_name): bool {
+    public function table_exists(string $table_name) {
         $query = $this->wpdb->prepare(
             "SHOW TABLES LIKE %s",
             $table_name
@@ -79,7 +79,7 @@ class Database {
      *
      * @return bool True on success, false on failure
      */
-    public function create_projects_table(): bool {
+    public function create_projects_table() {
         $table_name = $this->get_projects_table();
         
         $charset_collate = $this->wpdb->get_charset_collate();
@@ -122,7 +122,7 @@ class Database {
      *
      * @return bool True on success, false on failure
      */
-    public function create_orders_table(): bool {
+    public function create_orders_table() {
         $table_name = $this->get_orders_table();
         
         $charset_collate = $this->wpdb->get_charset_collate();
@@ -164,7 +164,7 @@ class Database {
      *
      * @return bool True on success, false on failure
      */
-    public function drop_projects_table(): bool {
+    public function drop_projects_table() {
         $table_name = $this->get_projects_table();
         
         $sql = "DROP TABLE IF EXISTS $table_name";
@@ -178,7 +178,7 @@ class Database {
      *
      * @return bool True on success, false on failure
      */
-    public function drop_orders_table(): bool {
+    public function drop_orders_table() {
         $table_name = $this->get_orders_table();
         
         $sql = "DROP TABLE IF EXISTS $table_name";
@@ -192,7 +192,7 @@ class Database {
      *
      * @return bool True on success, false on failure
      */
-    public function drop_tables(): bool {
+    public function drop_tables() {
         $success = true;
         $success = $success && $this->drop_projects_table();
         $success = $success && $this->drop_orders_table();
@@ -241,7 +241,7 @@ class Database {
      * @param array $project_data Project data
      * @return bool True on success, false on failure
      */
-    public function update_project(int $id, array $project_data): bool {
+    public function update_project(int $id, array $project_data) {
         $table_name = $this->get_projects_table();
         
         // Prepare data for update
@@ -299,7 +299,7 @@ class Database {
      * @param int $id Project ID
      * @return array|null Project data or null if not found
      */
-    public function get_project(int $id): ?array {
+    public function get_project(int $id) {
         $table_name = $this->get_projects_table();
         
         $query = $this->wpdb->prepare(
@@ -326,7 +326,7 @@ class Database {
      * @param string $vendor_id Vendor project ID
      * @return array|null Project data or null if not found
      */
-    public function get_project_by_vendor_id(string $vendor, string $vendor_id): ?array {
+    public function get_project_by_vendor_id(string $vendor, string $vendor_id) {
         $table_name = $this->get_projects_table();
         
         $query = $this->wpdb->prepare(
@@ -357,7 +357,7 @@ class Database {
      * @param string $order Order direction (ASC/DESC)
      * @return array Array of project data
      */
-    public function search_projects(array $filters = [], int $limit = 20, int $offset = 0, string $order_by = 'name', string $order = 'ASC'): array {
+    public function search_projects(array $filters = [], int $limit = 20, int $offset = 0, string $order_by = 'name', string $order = 'ASC') {
         $table_name = $this->get_projects_table();
         
         $where_clauses = [];
@@ -477,7 +477,7 @@ class Database {
      * @param array $order_data Order data
      * @return bool True on success, false on failure
      */
-    public function update_order(int $id, array $order_data): bool {
+    public function update_order(int $id, array $order_data) {
         $table_name = $this->get_orders_table();
         
         // Prepare data for update
@@ -535,7 +535,7 @@ class Database {
      * @param int $id Order ID
      * @return array|null Order data or null if not found
      */
-    public function get_order(int $id): ?array {
+    public function get_order(int $id) {
         $table_name = $this->get_orders_table();
         
         $query = $this->wpdb->prepare(
@@ -561,7 +561,7 @@ class Database {
      * @param string $vendor_order_id Vendor order ID
      * @return array|null Order data or null if not found
      */
-    public function get_order_by_vendor_id(string $vendor, string $vendor_order_id): ?array {
+    public function get_order_by_vendor_id(string $vendor, string $vendor_order_id) {
         $table_name = $this->get_orders_table();
         
         $query = $this->wpdb->prepare(
@@ -589,7 +589,7 @@ class Database {
      * @param int $offset Results offset
      * @return array Array of order data
      */
-    public function get_orders_by_user(int $user_id, int $limit = 20, int $offset = 0): array {
+    public function get_orders_by_user(int $user_id, int $limit = 20, int $offset = 0) {
         $table_name = $this->get_orders_table();
         
         $query = $this->wpdb->prepare(
