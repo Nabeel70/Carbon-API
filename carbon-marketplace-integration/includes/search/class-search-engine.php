@@ -8,46 +8,240 @@
 
 namespace CarbonMarketplace\Search;
 
-use CarbonMarketplace\Core\Database;
+use CarbonMarketplace\Api\ApiManager;
 use CarbonMarketplace\Models\Project;
 use CarbonMarketplace\Models\SearchQuery;
+use CarbonMarketplace\Search\SearchResults;
 
 /**
- * SearchEngine class for project indexing and search functionality
+ * SearchEngine class for searching carbon projects via APIs
  */
 class SearchEngine {
     
     /**
-     * Database instance
+     * API Manager instance
      *
-     * @var Database
+     * @var ApiManager
      */
-    private $database;
-    
-    /**
-     * Search index cache key
-     *
-     * @var string
-     */
-    private $index_cache_key = 'carbon_marketplace_search_index';
-    
-    /**
-     * Cache TTL for search index (1 hour)
-     *
-     * @var int
-     */
-    private $index_cache_ttl = 3600;
+    private $api_manager;
     
     /**
      * Constructor
      *
-     * @param Database $database Database instance
+     * @param ApiManager $api_manager API Manager instance
      */
-    public function __construct(Database $database = null) {
-        $this->database = $database ?: new Database();
+    public function __construct(ApiManager $api_manager = null) {
+        $this->api_manager = $api_manager ?: new ApiManager();
     }
     
     /**
+     * Search projects using CNaught API
+     *
+     * @param SearchQuery $query Search query
+     * @return SearchResults Search results
+     */
+    public function search(SearchQuery $query): SearchResults {
+        try {
+            if (!$query->validate()) {
+                return new SearchResults([], 0, $query->get_validation_errors());
+            }
+
+            // Get all portfolios from CNaught API
+            $portfolios = $this->api_manager->fetch_all_portfolios();
+            
+            if (is_wp_error($portfolios)) {
+                return new SearchResults([], 0, ['api_error' => $portfolios->get_error_message()]);
+            }
+            
+            // Extract projects from portfolios and apply filters
+            $all_projects = [];
+            foreach ($portfolios as $portfolio) {
+                $projects = $portfolio->get_projects();
+                $all_projects = array_merge($all_projects, $projects);
+            }
+            
+            // Apply search filters
+            $filtered_projects = $this->apply_filters($all_projects, $query->get_active_filters());
+            
+            // Apply sorting and pagination
+            $sorted_projects = $this->sort_projects($filtered_projects, $query->sort_by, $query->sort_order);
+            $paginated_projects = array_slice($sorted_projects, $query->offset, $query->limit);
+            
+            return new SearchResults($paginated_projects, count($filtered_projects));
+            
+        } catch (\Exception $e) {
+            error_log('SearchEngine::search error: ' . $e->getMessage());
+            return new SearchResults([], 0, ['search_error' => 'An error occurred during search']);
+        }
+    }
+    
+    /**
+     * Apply filters to projects
+     *
+     * @param array $projects Array of Project objects
+     * @param array $filters Filter criteria
+     * @return array Filtered projects
+     */
+    private function apply_filters(array $projects, array $filters): array {
+        $filtered = $projects;
+        
+        // Keyword search
+        if (!empty($filters['keyword'])) {
+            $filtered = $this->filter_by_keyword($filtered, $filters['keyword']);
+        }
+        
+        // Location filter
+        if (!empty($filters['location'])) {
+            $filtered = $this->filter_by_location($filtered, $filters['location']);
+        }
+        
+        // Project type filter
+        if (!empty($filters['project_type'])) {
+            $filtered = $this->filter_by_project_type($filtered, $filters['project_type']);
+        }
+        
+        // Price range filter
+        if (isset($filters['min_price']) || isset($filters['max_price'])) {
+            $filtered = $this->filter_by_price_range(
+                $filtered, 
+                $filters['min_price'] ?? null, 
+                $filters['max_price'] ?? null
+            );
+        }
+        
+        // SDG filter
+        if (!empty($filters['sdgs'])) {
+            $filtered = $this->filter_by_sdgs($filtered, $filters['sdgs']);
+        }
+        
+        return $filtered;
+    }
+    
+    /**
+     * Filter projects by keyword
+     *
+     * @param array $projects Array of projects
+     * @param string $keyword Search keyword
+     * @return array Filtered projects
+     */
+    private function filter_by_keyword(array $projects, string $keyword): array {
+        $keyword = strtolower(trim($keyword));
+        
+        return array_filter($projects, function($project) use ($keyword) {
+            $searchable_text = strtolower(
+                $project->get_name() . ' ' . 
+                $project->get_description() . ' ' . 
+                $project->get_methodology()
+            );
+            
+            return strpos($searchable_text, $keyword) !== false;
+        });
+    }
+    
+    /**
+     * Filter projects by location
+     *
+     * @param array $projects Array of projects
+     * @param string $location Location filter
+     * @return array Filtered projects
+     */
+    private function filter_by_location(array $projects, string $location): array {
+        $location = strtolower(trim($location));
+        
+        return array_filter($projects, function($project) use ($location) {
+            $project_location = strtolower($project->get_location());
+            return strpos($project_location, $location) !== false;
+        });
+    }
+    
+    /**
+     * Filter projects by project type
+     *
+     * @param array $projects Array of projects
+     * @param string $project_type Project type filter
+     * @return array Filtered projects
+     */
+    private function filter_by_project_type(array $projects, string $project_type): array {
+        $project_type = strtolower(trim($project_type));
+        
+        return array_filter($projects, function($project) use ($project_type) {
+            $type = strtolower($project->get_project_type());
+            return strpos($type, $project_type) !== false;
+        });
+    }
+    
+    /**
+     * Filter projects by price range
+     *
+     * @param array $projects Array of projects
+     * @param float|null $min_price Minimum price
+     * @param float|null $max_price Maximum price
+     * @return array Filtered projects
+     */
+    private function filter_by_price_range(array $projects, ?float $min_price, ?float $max_price): array {
+        return array_filter($projects, function($project) use ($min_price, $max_price) {
+            $price = $project->get_price_per_kg();
+            
+            if ($min_price !== null && $price < $min_price) {
+                return false;
+            }
+            
+            if ($max_price !== null && $price > $max_price) {
+                return false;
+            }
+            
+            return true;
+        });
+    }
+    
+    /**
+     * Filter projects by SDGs
+     *
+     * @param array $projects Array of projects
+     * @param array $sdgs SDG filter
+     * @return array Filtered projects
+     */
+    private function filter_by_sdgs(array $projects, array $sdgs): array {
+        return array_filter($projects, function($project) use ($sdgs) {
+            $project_sdgs = $project->get_sdgs();
+            return !empty(array_intersect($sdgs, $project_sdgs));
+        });
+    }
+    
+    /**
+     * Sort projects
+     *
+     * @param array $projects Array of projects
+     * @param string $sort_by Sort field
+     * @param string $sort_order Sort order (ASC|DESC)
+     * @return array Sorted projects
+     */
+    private function sort_projects(array $projects, string $sort_by = 'name', string $sort_order = 'ASC'): array {
+        usort($projects, function($a, $b) use ($sort_by, $sort_order) {
+            $result = 0;
+            
+            switch ($sort_by) {
+                case 'price':
+                    $result = $a->get_price_per_kg() <=> $b->get_price_per_kg();
+                    break;
+                case 'location':
+                    $result = strcasecmp($a->get_location(), $b->get_location());
+                    break;
+                case 'project_type':
+                    $result = strcasecmp($a->get_project_type(), $b->get_project_type());
+                    break;
+                case 'name':
+                default:
+                    $result = strcasecmp($a->get_name(), $b->get_name());
+                    break;
+            }
+            
+            return $sort_order === 'DESC' ? -$result : $result;
+        });
+        
+        return $projects;
+    }
+}
      * Index projects for search
      *
      * @param array $projects Array of project data

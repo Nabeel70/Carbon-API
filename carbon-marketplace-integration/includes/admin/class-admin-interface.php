@@ -125,11 +125,6 @@ class AdminInterface {
         \register_setting('carbon_marketplace_cnaught', 'carbon_marketplace_cnaught_sandbox_mode');
         \register_setting('carbon_marketplace_cnaught', 'carbon_marketplace_cnaught_enabled');
         
-        // Toucan API settings
-        \register_setting('carbon_marketplace_toucan', 'carbon_marketplace_toucan_api_key');
-        \register_setting('carbon_marketplace_toucan', 'carbon_marketplace_toucan_network');
-        \register_setting('carbon_marketplace_toucan', 'carbon_marketplace_toucan_enabled');
-        
         // Add settings sections
         add_settings_section(
             'carbon_marketplace_general_section',
@@ -150,13 +145,6 @@ class AdminInterface {
             \__('CNaught API Settings', 'carbon-marketplace'),
             array($this, 'render_cnaught_section'),
             'carbon_marketplace_cnaught'
-        );
-        
-        add_settings_section(
-            'carbon_marketplace_toucan_section',
-            \__('Toucan API Settings', 'carbon-marketplace'),
-            array($this, 'render_toucan_section'),
-            'carbon_marketplace_toucan'
         );
         
         // Add settings fields
@@ -283,47 +271,6 @@ class AdminInterface {
                 'description' => \__('Use CNaught sandbox environment for testing', 'carbon-marketplace'),
             )
         );
-        
-        // Toucan API fields
-        add_settings_field(
-            'toucan_enabled',
-            \__('Enable Toucan API', 'carbon-marketplace'),
-            array($this, 'render_checkbox_field'),
-            'carbon_marketplace_toucan',
-            'carbon_marketplace_toucan_section',
-            array(
-                'option_name' => 'carbon_marketplace_toucan_enabled',
-                'description' => \__('Enable integration with Toucan Protocol', 'carbon-marketplace'),
-            )
-        );
-        
-        add_settings_field(
-            'toucan_api_key',
-            \__('The Graph API Key (Optional)', 'carbon-marketplace'),
-            array($this, 'render_text_field'),
-            'carbon_marketplace_toucan',
-            'carbon_marketplace_toucan_section',
-            array(
-                'option_name' => 'carbon_marketplace_toucan_api_key',
-                'description' => \__('Optional API key for The Graph hosted service', 'carbon-marketplace'),
-            )
-        );
-        
-        add_settings_field(
-            'toucan_network',
-            \__('Network', 'carbon-marketplace'),
-            array($this, 'render_select_field'),
-            'carbon_marketplace_toucan',
-            'carbon_marketplace_toucan_section',
-            array(
-                'option_name' => 'carbon_marketplace_toucan_network',
-                'description' => \__('Blockchain network to use', 'carbon-marketplace'),
-                'options' => array(
-                    'polygon' => \__('Polygon Mainnet', 'carbon-marketplace'),
-                    'mumbai' => \__('Polygon Mumbai (Testnet)', 'carbon-marketplace'),
-                ),
-            )
-        );
     }
     
     /**
@@ -383,10 +330,6 @@ class AdminInterface {
                    class="nav-tab <?php echo $active_tab === 'cnaught' ? 'nav-tab-active' : ''; ?>">
                     <?php _e('CNaught API', 'carbon-marketplace'); ?>
                 </a>
-                <a href="?page=carbon-marketplace-settings&tab=toucan" 
-                   class="nav-tab <?php echo $active_tab === 'toucan' ? 'nav-tab-active' : ''; ?>">
-                    <?php _e('Toucan API', 'carbon-marketplace'); ?>
-                </a>
             </nav>
             
             <form method="post" action="options.php">
@@ -403,10 +346,6 @@ class AdminInterface {
                     case 'cnaught':
                         settings_fields('carbon_marketplace_cnaught');
                         do_settings_sections('carbon_marketplace_cnaught');
-                        break;
-                    case 'toucan':
-                        settings_fields('carbon_marketplace_toucan');
-                        do_settings_sections('carbon_marketplace_toucan');
                         break;
                 }
                 submit_button();
@@ -426,7 +365,6 @@ class AdminInterface {
             
             <div class="vendor-status-cards">
                 <?php $this->render_vendor_card('cnaught'); ?>
-                <?php $this->render_vendor_card('toucan'); ?>
             </div>
         </div>
         <?php
@@ -500,10 +438,6 @@ class AdminInterface {
             'CNaught' => array(
                 'enabled' => \get_option('carbon_marketplace_cnaught_enabled', false),
                 'configured' => !empty(get_option('carbon_marketplace_cnaught_api_key')),
-            ),
-            'Toucan' => array(
-                'enabled' => \get_option('carbon_marketplace_toucan_enabled', false),
-                'configured' => true, // Toucan doesn't require API key
             ),
         );
         
@@ -746,9 +680,8 @@ class AdminInterface {
         // Check if APIs are configured
         $cnaught_enabled = \get_option('carbon_marketplace_cnaught_enabled', false);
         $cnaught_configured = !empty(get_option('carbon_marketplace_cnaught_api_key'));
-        $toucan_enabled = \get_option('carbon_marketplace_toucan_enabled', false);
         
-        if (($cnaught_enabled && !$cnaught_configured) || (!$cnaught_enabled && !$toucan_enabled)) {
+        if ($cnaught_enabled && !$cnaught_configured) {
             ?>
             <div class="notice notice-warning">
                 <p>

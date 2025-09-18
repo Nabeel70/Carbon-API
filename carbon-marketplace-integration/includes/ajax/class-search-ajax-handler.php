@@ -10,7 +10,7 @@ namespace CarbonMarketplace\Ajax;
 
 use CarbonMarketplace\Search\SearchEngine;
 use CarbonMarketplace\Models\SearchQuery;
-use CarbonMarketplace\Core\Database;
+use CarbonMarketplace\Api\ApiManager;
 
 /**
  * SearchAjaxHandler class for handling AJAX search requests
@@ -25,6 +25,13 @@ class SearchAjaxHandler {
     private $search_engine;
     
     /**
+     * ApiManager instance
+     *
+     * @var ApiManager
+     */
+    private $api_manager;
+    
+    /**
      * Nonce action for search requests
      *
      * @var string
@@ -35,9 +42,11 @@ class SearchAjaxHandler {
      * Constructor
      *
      * @param SearchEngine $search_engine SearchEngine instance
+     * @param ApiManager $api_manager ApiManager instance
      */
-    public function __construct(SearchEngine $search_engine = null) {
-        $this->search_engine = $search_engine ?: new SearchEngine();
+    public function __construct(SearchEngine $search_engine = null, ApiManager $api_manager = null) {
+        $this->api_manager = $api_manager ?: new ApiManager();
+        $this->search_engine = $search_engine ?: new SearchEngine($this->api_manager);
         $this->init_hooks();
     }
     
@@ -48,12 +57,6 @@ class SearchAjaxHandler {
         // Register AJAX handlers for both logged-in and non-logged-in users
         \add_action('wp_ajax_carbon_marketplace_search', [$this, 'handle_search_request']);
         \add_action('wp_ajax_nopriv_carbon_marketplace_search', [$this, 'handle_search_request']);
-        
-        \add_action('wp_ajax_carbon_marketplace_suggestions', [$this, 'handle_suggestions_request']);
-        \add_action('wp_ajax_nopriv_carbon_marketplace_suggestions', [$this, 'handle_suggestions_request']);
-        
-        \add_action('wp_ajax_carbon_marketplace_project_details', [$this, 'handle_project_details_request']);
-        \add_action('wp_ajax_nopriv_carbon_marketplace_project_details', [$this, 'handle_project_details_request']);
         
         // Enqueue scripts for AJAX
         \add_action('wp_enqueue_scripts', [$this, 'enqueue_ajax_scripts']);
@@ -101,15 +104,20 @@ class SearchAjaxHandler {
             $response_data = [
                 'success' => true,
                 'data' => [
-                    'projects' => $results->get_project_summaries(),
-                    'pagination' => $results->get_pagination_info($query->limit, $query->offset),
+                    'projects' => $this->format_projects_for_response($results->get_projects()),
+                    'total_count' => $results->get_total_count(),
                     'filters_applied' => $query->get_active_filters(),
-                    'search_metadata' => $results->get_metadata(),
+                    'pagination' => [
+                        'current_page' => floor($query->offset / $query->limit) + 1,
+                        'total_pages' => ceil($results->get_total_count() / $query->limit),
+                        'per_page' => $query->limit,
+                        'total_items' => $results->get_total_count()
+                    ],
                 ],
             ];
             
             // Add search time metadata
-            $response_data['data']['search_metadata']['response_time'] = microtime(true) - $_SERVER['REQUEST_TIME_FLOAT'];
+            $response_data['data']['response_time'] = microtime(true) - $_SERVER['REQUEST_TIME_FLOAT'];
             
             $this->send_json_response($response_data);
             
@@ -120,95 +128,31 @@ class SearchAjaxHandler {
     }
     
     /**
-     * Handle suggestions AJAX request
+     * Format projects for JSON response
+     *
+     * @param array $projects Array of Project objects
+     * @return array Formatted project data
      */
-    public function handle_suggestions_request(): void {
-        try {
-            // Verify nonce for security
-            if (!$this->verify_nonce()) {
-                $this->send_error_response('Invalid security token', 403);
-                return;
-            }
-            
-            // Get and sanitize input
-            $input = sanitize_text_field($_POST['input'] ?? '');
-            $limit = (int) ($_POST['limit'] ?? 10);
-            
-            // Validate input
-            if (empty($input) || strlen($input) < 2) {
-                $this->send_json_response([
-                    'success' => true,
-                    'data' => ['suggestions' => []],
-                ]);
-                return;
-            }
-            
-            // Limit the number of suggestions
-            $limit = max(1, min($limit, 20));
-            
-            // Get suggestions
-            $suggestions = $this->search_engine->get_suggestions($input, $limit);
-            
-            $response_data = [
-                'success' => true,
-                'data' => [
-                    'suggestions' => $suggestions,
-                    'input' => $input,
-                ],
+    private function format_projects_for_response(array $projects): array {
+        $formatted = [];
+        
+        foreach ($projects as $project) {
+            $formatted[] = [
+                'id' => $project->get_id(),
+                'name' => $project->get_name(),
+                'description' => wp_trim_words($project->get_description(), 30),
+                'location' => $project->get_location(),
+                'project_type' => $project->get_project_type(),
+                'methodology' => $project->get_methodology(),
+                'price_per_kg' => $project->get_price_per_kg(),
+                'available_quantity' => $project->get_available_quantity(),
+                'images' => $project->get_images(),
+                'sdgs' => $project->get_sdgs(),
+                'vendor' => $project->get_vendor()
             ];
-            
-            $this->send_json_response($response_data);
-            
-        } catch (\Exception $e) {
-            error_log('SearchAjaxHandler::handle_suggestions_request error: ' . $e->getMessage());
-            $this->send_error_response('An unexpected error occurred', 500);
         }
-    }
-    
-    /**
-     * Handle project details AJAX request
-     */
-    public function handle_project_details_request(): void {
-        try {
-            // Verify nonce for security
-            if (!$this->verify_nonce()) {
-                $this->send_error_response('Invalid security token', 403);
-                return;
-            }
-            
-            // Get and sanitize project ID
-            $project_id = sanitize_text_field($_POST['project_id'] ?? '');
-            
-            if (empty($project_id)) {
-                $this->send_error_response('Project ID is required', 400);
-                return;
-            }
-            
-            // Get project from database
-            $database = new Database();
-            $project_data = $database->get_project((int) $project_id);
-            
-            if (!$project_data) {
-                $this->send_error_response('Project not found', 404);
-                return;
-            }
-            
-            // Convert to Project object for consistent formatting
-            $project = \CarbonMarketplace\Models\Project::from_array($project_data);
-            
-            $response_data = [
-                'success' => true,
-                'data' => [
-                    'project' => $project->to_array(),
-                ],
-            ];
-            
-            $this->send_json_response($response_data);
-            
-        } catch (\Exception $e) {
-            error_log('SearchAjaxHandler::handle_project_details_request error: ' . $e->getMessage());
-            $this->send_error_response('An unexpected error occurred', 500);
-        }
+        
+        return $formatted;
     }
     
     /**
@@ -224,8 +168,6 @@ class SearchAjaxHandler {
             'nonce' => wp_create_nonce($this->nonce_action),
             'actions' => [
                 'search' => 'carbon_marketplace_search',
-                'suggestions' => 'carbon_marketplace_suggestions',
-                'project_details' => 'carbon_marketplace_project_details',
             ],
         ];
         
@@ -311,49 +253,5 @@ class SearchAjaxHandler {
                 'code' => $status_code,
             ],
         ]);
-    }
-    
-    /**
-     * Get search statistics for admin
-     *
-     * @return array Search statistics
-     */
-    public function get_search_statistics(): array {
-        // This could be expanded to track search metrics
-        return [
-            'total_searches' => get_option('carbon_marketplace_total_searches', 0),
-            'popular_keywords' => get_option('carbon_marketplace_popular_keywords', []),
-            'average_results' => get_option('carbon_marketplace_average_results', 0),
-        ];
-    }
-    
-    /**
-     * Track search for analytics
-     *
-     * @param SearchQuery $query Search query
-     * @param int $result_count Number of results
-     */
-    private function track_search(SearchQuery $query, int $result_count): void {
-        // Increment total searches
-        $total_searches = get_option('carbon_marketplace_total_searches', 0);
-        update_option('carbon_marketplace_total_searches', $total_searches + 1);
-        
-        // Track popular keywords
-        if (!empty($query->keyword)) {
-            $popular_keywords = get_option('carbon_marketplace_popular_keywords', []);
-            $keyword = strtolower($query->keyword);
-            $popular_keywords[$keyword] = ($popular_keywords[$keyword] ?? 0) + 1;
-            
-            // Keep only top 100 keywords
-            arsort($popular_keywords);
-            $popular_keywords = array_slice($popular_keywords, 0, 100, true);
-            
-            update_option('carbon_marketplace_popular_keywords', $popular_keywords);
-        }
-        
-        // Update average results
-        $current_average = get_option('carbon_marketplace_average_results', 0);
-        $new_average = (($current_average * ($total_searches - 1)) + $result_count) / $total_searches;
-        update_option('carbon_marketplace_average_results', round($new_average, 2));
     }
 }

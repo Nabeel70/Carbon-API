@@ -211,7 +211,7 @@ class CarbonMarketplace {
         // Localize script for AJAX
         \wp_localize_script('carbon-marketplace-frontend', 'carbonMarketplace', array(
             'ajaxUrl' => \admin_url('admin-ajax.php'),
-            'nonce' => \wp_create_nonce('carbon_marketplace_nonce'),
+            'nonce' => \wp_create_nonce('carbon_marketplace_search'),
             'strings' => array(
                 'loading' => \__('Loading...', 'carbon-marketplace'),
                 'error' => \__('An error occurred. Please try again.', 'carbon-marketplace'),
