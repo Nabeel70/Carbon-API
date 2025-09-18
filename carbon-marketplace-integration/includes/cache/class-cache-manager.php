@@ -53,7 +53,7 @@ class CacheManager {
      * @param array $config Configuration options
      */
     public function __construct($config = []) {
-        $this->config = wp_parse_args($config, [
+        $this->config = \wp_parse_args($config, [
             'enable_cache' => true,
             'cache_prefix' => 'carbon_marketplace_',
             'default_ttl' => $this->default_ttl,
@@ -434,7 +434,7 @@ class CacheManager {
             try {
                 $data = call_user_func($callback);
                 
-                if (is_wp_error($data)) {
+                if (\is_wp_error($data)) {
                     $results[$type . '_' . $vendor] = [
                         'success' => false,
                         'error' => $data->get_error_message(),
@@ -612,8 +612,8 @@ class CacheManager {
      * Schedule background refresh
      */
     private function schedule_background_refresh() {
-        if (!wp_next_scheduled('carbon_marketplace_cache_refresh')) {
-            wp_schedule_event(time(), 'hourly', 'carbon_marketplace_cache_refresh');
+        if (!\wp_next_scheduled('carbon_marketplace_cache_refresh')) {
+            \wp_schedule_event(\time(), 'hourly', 'carbon_marketplace_cache_refresh');
         }
     }
 

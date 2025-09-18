@@ -60,7 +60,19 @@ class Autoloader {
         
         // Convert class name to file name format (PascalCase to kebab-case with class- prefix)
         $kebab_case = strtolower(preg_replace('/([a-z])([A-Z])/', '$1-$2', $class_name));
-        $file_name = 'class-' . $kebab_case . '.php';
+        
+        // Special handling for BaseModel -> abstract-base-model
+        if ($class_name === 'BaseModel') {
+            $file_name = 'abstract-base-model.php';
+        }
+        // Special handling for ModelInterface -> interface-model
+        elseif ($class_name === 'ModelInterface') {
+            $file_name = 'interface-model.php';
+        }
+        else {
+            $file_name = 'class-' . $kebab_case . '.php';
+        }
+        
         $file_path .= $file_name;
         
         // If the file exists, require it
