@@ -9,7 +9,7 @@ namespace CarbonMarketplace;
 
 use CarbonMarketplace\Core\Database;
 use CarbonMarketplace\Core\Migration;
-use CarbonMarketplace\Api\ApiManager;
+use CarbonMarketplace\API\ApiManager;
 use CarbonMarketplace\Cache\CacheManager;
 use CarbonMarketplace\Search\SearchEngine;
 use CarbonMarketplace\Ajax\SearchAjaxHandler;
@@ -134,9 +134,9 @@ class CarbonMarketplace {
     private function init_core_components() {
         $this->database = new Database();
         $this->cache_manager = new CacheManager();
-        $this->api_manager = new ApiManager($this->cache_manager);
+        $this->api_manager = new ApiManager();
         $this->checkout_manager = new CheckoutManager($this->api_manager, $this->database);
-        $this->search_engine = new SearchEngine($this->database);
+        $this->search_engine = new SearchEngine($this->api_manager);
         $this->ajax_handler = new SearchAjaxHandler($this->search_engine);
         $this->admin_interface = new AdminInterface($this->api_manager, $this->cache_manager);
         $this->webhook_handler = new WebhookHandler($this->checkout_manager, $this->database);
