@@ -46,17 +46,24 @@ class SearchAjaxHandler {
      */
     private function init_hooks(): void {
         // Register AJAX handlers for both logged-in and non-logged-in users
-        add_action('wp_ajax_carbon_marketplace_search', [$this, 'handle_search_request']);
-        add_action('wp_ajax_nopriv_carbon_marketplace_search', [$this, 'handle_search_request']);
+        \add_action('wp_ajax_carbon_marketplace_search', [$this, 'handle_search_request']);
+        \add_action('wp_ajax_nopriv_carbon_marketplace_search', [$this, 'handle_search_request']);
         
-        add_action('wp_ajax_carbon_marketplace_suggestions', [$this, 'handle_suggestions_request']);
-        add_action('wp_ajax_nopriv_carbon_marketplace_suggestions', [$this, 'handle_suggestions_request']);
+        \add_action('wp_ajax_carbon_marketplace_suggestions', [$this, 'handle_suggestions_request']);
+        \add_action('wp_ajax_nopriv_carbon_marketplace_suggestions', [$this, 'handle_suggestions_request']);
         
-        add_action('wp_ajax_carbon_marketplace_project_details', [$this, 'handle_project_details_request']);
-        add_action('wp_ajax_nopriv_carbon_marketplace_project_details', [$this, 'handle_project_details_request']);
+        \add_action('wp_ajax_carbon_marketplace_project_details', [$this, 'handle_project_details_request']);
+        \add_action('wp_ajax_nopriv_carbon_marketplace_project_details', [$this, 'handle_project_details_request']);
+        
+        // Also add handlers for projects grid and project detail
+        \add_action('wp_ajax_carbon_marketplace_get_projects', [$this, 'handle_get_projects_request']);
+        \add_action('wp_ajax_nopriv_carbon_marketplace_get_projects', [$this, 'handle_get_projects_request']);
+        
+        \add_action('wp_ajax_carbon_marketplace_get_project_detail', [$this, 'handle_get_project_detail_request']);
+        \add_action('wp_ajax_nopriv_carbon_marketplace_get_project_detail', [$this, 'handle_get_project_detail_request']);
         
         // Enqueue scripts for AJAX
-        add_action('wp_enqueue_scripts', [$this, 'enqueue_ajax_scripts']);
+        \add_action('wp_enqueue_scripts', [$this, 'enqueue_ajax_scripts']);
     }
     
     /**
@@ -131,7 +138,7 @@ class SearchAjaxHandler {
             }
             
             // Get and sanitize input
-            $input = sanitize_text_field($_POST['input'] ?? '');
+            $input = \sanitize_text_field($_POST['input'] ?? '');
             $limit = (int) ($_POST['limit'] ?? 10);
             
             // Validate input
@@ -177,7 +184,7 @@ class SearchAjaxHandler {
             }
             
             // Get and sanitize project ID
-            $project_id = sanitize_text_field($_POST['project_id'] ?? '');
+            $project_id = \sanitize_text_field($_POST['project_id'] ?? '');
             
             if (empty($project_id)) {
                 $this->send_error_response('Project ID is required', 400);
@@ -239,7 +246,7 @@ class SearchAjaxHandler {
      */
     private function verify_nonce(): bool {
         $nonce = $_POST['nonce'] ?? '';
-        return wp_verify_nonce($nonce, $this->nonce_action);
+        return \wp_verify_nonce($nonce, $this->nonce_action);
     }
     
     /**
@@ -254,7 +261,7 @@ class SearchAjaxHandler {
         $text_fields = ['keyword', 'location', 'project_type', 'vendor', 'sort_by', 'sort_order'];
         foreach ($text_fields as $field) {
             if (isset($_POST[$field]) && !empty($_POST[$field])) {
-                $params[$field] = sanitize_text_field($_POST[$field]);
+                $params[$field] = \sanitize_text_field($_POST[$field]);
             }
         }
         
@@ -293,7 +300,7 @@ class SearchAjaxHandler {
      * @param array $data Response data
      */
     private function send_json_response(array $data): void {
-        wp_send_json($data);
+        \wp_send_json($data);
     }
     
     /**
@@ -304,7 +311,7 @@ class SearchAjaxHandler {
      */
     private function send_error_response(string $message, int $status_code = 400): void {
         status_header($status_code);
-        wp_send_json([
+        \wp_send_json([
             'success' => false,
             'error' => [
                 'message' => $message,
@@ -321,9 +328,9 @@ class SearchAjaxHandler {
     public function get_search_statistics(): array {
         // This could be expanded to track search metrics
         return [
-            'total_searches' => get_option('carbon_marketplace_total_searches', 0),
-            'popular_keywords' => get_option('carbon_marketplace_popular_keywords', []),
-            'average_results' => get_option('carbon_marketplace_average_results', 0),
+            'total_searches' => \get_option('carbon_marketplace_total_searches', 0),
+            'popular_keywords' => \get_option('carbon_marketplace_popular_keywords', []),
+            'average_results' => \get_option('carbon_marketplace_average_results', 0),
         ];
     }
     
@@ -335,25 +342,162 @@ class SearchAjaxHandler {
      */
     private function track_search(SearchQuery $query, int $result_count): void {
         // Increment total searches
-        $total_searches = get_option('carbon_marketplace_total_searches', 0);
-        update_option('carbon_marketplace_total_searches', $total_searches + 1);
+        $total_searches = \get_option('carbon_marketplace_total_searches', 0);
+        \update_option('carbon_marketplace_total_searches', $total_searches + 1);
         
         // Track popular keywords
         if (!empty($query->keyword)) {
-            $popular_keywords = get_option('carbon_marketplace_popular_keywords', []);
-            $keyword = strtolower($query->keyword);
+            $popular_keywords = \get_option('carbon_marketplace_popular_keywords', []);
+            $keyword = \strtolower($query->keyword);
             $popular_keywords[$keyword] = ($popular_keywords[$keyword] ?? 0) + 1;
             
             // Keep only top 100 keywords
-            arsort($popular_keywords);
-            $popular_keywords = array_slice($popular_keywords, 0, 100, true);
+            \arsort($popular_keywords);
+            $popular_keywords = \array_slice($popular_keywords, 0, 100, true);
             
-            update_option('carbon_marketplace_popular_keywords', $popular_keywords);
+            \update_option('carbon_marketplace_popular_keywords', $popular_keywords);
         }
         
         // Update average results
-        $current_average = get_option('carbon_marketplace_average_results', 0);
+        $current_average = \get_option('carbon_marketplace_average_results', 0);
         $new_average = (($current_average * ($total_searches - 1)) + $result_count) / $total_searches;
-        update_option('carbon_marketplace_average_results', round($new_average, 2));
+        \update_option('carbon_marketplace_average_results', \round($new_average, 2));
+    }
+    
+    /**
+     * Handle get projects AJAX request
+     */
+    public function handle_get_projects_request(): void {
+        try {
+            // Verify nonce for security
+            if (!$this->verify_nonce()) {
+                $this->send_error_response('Invalid security token', 403);
+                return;
+            }
+            
+            // Get and sanitize input parameters
+            $limit = \intval($_POST['limit'] ?? 20);
+            $vendor = \sanitize_text_field($_POST['vendor'] ?? '');
+            $project_type = \sanitize_text_field($_POST['project_type'] ?? '');
+            $location = \sanitize_text_field($_POST['location'] ?? '');
+            
+            // Create filters
+            $filters = [];
+            if (!empty($vendor)) $filters['vendor'] = $vendor;
+            if (!empty($project_type)) $filters['project_type'] = $project_type;
+            if (!empty($location)) $filters['location'] = $location;
+            
+            // Get projects from database
+            $database = new \CarbonMarketplace\Core\Database();
+            $projects = $database->search_projects($filters, $limit);
+            
+            // Generate HTML for projects
+            $html = $this->render_projects_html($projects);
+            
+            // Send response
+            \wp_send_json_success([
+                'html' => $html,
+                'count' => count($projects)
+            ]);
+            
+        } catch (\Exception $e) {
+            $this->send_error_response('Failed to load projects: ' . $e->getMessage(), 500);
+        }
+    }
+    
+    /**
+     * Handle get project detail AJAX request
+     */
+    public function handle_get_project_detail_request(): void {
+        try {
+            // Verify nonce for security
+            if (!$this->verify_nonce()) {
+                $this->send_error_response('Invalid security token', 403);
+                return;
+            }
+            
+            // Get and sanitize input parameters
+            $project_id = \sanitize_text_field($_POST['project_id'] ?? '');
+            $vendor = \sanitize_text_field($_POST['vendor'] ?? '');
+            
+            if (empty($project_id)) {
+                $this->send_error_response('Project ID is required', 400);
+                return;
+            }
+            
+            // Get project from database
+            $database = new \CarbonMarketplace\Core\Database();
+            $project = $database->get_project_by_vendor_id($vendor, $project_id);
+            
+            if (!$project) {
+                $this->send_error_response('Project not found', 404);
+                return;
+            }
+            
+            // Generate HTML for project detail
+            $html = $this->render_project_detail_html($project);
+            
+            // Send response
+            \wp_send_json_success([
+                'html' => $html,
+                'project' => $project
+            ]);
+            
+        } catch (\Exception $e) {
+            $this->send_error_response('Failed to load project details: ' . $e->getMessage(), 500);
+        }
+    }
+    
+    /**
+     * Render projects HTML
+     */
+    private function render_projects_html($projects): string {
+        if (empty($projects)) {
+            return '<div class="no-projects">' . \__('No projects found.', 'carbon-marketplace') . '</div>';
+        }
+        
+        $html = '';
+        foreach ($projects as $project) {
+            $html .= '<div class="carbon-project-card">';
+            $html .= '<h3>' . \esc_html($project['name']) . '</h3>';
+            $html .= '<p class="project-description">' . \esc_html($project['description']) . '</p>';
+            $html .= '<div class="project-meta">';
+            $html .= '<span class="location">' . \esc_html($project['location']) . '</span>';
+            $html .= '<span class="type">' . \esc_html($project['project_type']) . '</span>';
+            $html .= '<span class="price">$' . \number_format($project['price_per_kg'], 2) . ' per kg</span>';
+            $html .= '</div>';
+            $html .= '<div class="project-actions">';
+            $html .= '<a href="#" class="view-details" data-project-id="' . \esc_attr($project['id']) . '">' . \__('View Details', 'carbon-marketplace') . '</a>';
+            $html .= '</div>';
+            $html .= '</div>';
+        }
+        
+        return $html;
+    }
+    
+    /**
+     * Render project detail HTML
+     */
+    private function render_project_detail_html($project): string {
+        $html = '<div class="carbon-project-detail">';
+        $html .= '<h1>' . \esc_html($project['name']) . '</h1>';
+        $html .= '<div class="project-overview">';
+        $html .= '<p class="description">' . \esc_html($project['description']) . '</p>';
+        $html .= '<div class="project-specs">';
+        $html .= '<div class="spec"><label>' . \__('Location:', 'carbon-marketplace') . '</label> ' . \esc_html($project['location']) . '</div>';
+        $html .= '<div class="spec"><label>' . \__('Type:', 'carbon-marketplace') . '</label> ' . \esc_html($project['project_type']) . '</div>';
+        $html .= '<div class="spec"><label>' . \__('Methodology:', 'carbon-marketplace') . '</label> ' . \esc_html($project['methodology']) . '</div>';
+        $html .= '<div class="spec"><label>' . \__('Price per kg:', 'carbon-marketplace') . '</label> $' . \number_format($project['price_per_kg'], 2) . '</div>';
+        $html .= '<div class="spec"><label>' . \__('Available Quantity:', 'carbon-marketplace') . '</label> ' . \number_format($project['available_quantity']) . ' kg</div>';
+        $html .= '</div>';
+        if (!empty($project['registry_url'])) {
+            $html .= '<div class="registry-link">';
+            $html .= '<a href="' . \esc_url($project['registry_url']) . '" target="_blank">' . \__('View on Registry', 'carbon-marketplace') . '</a>';
+            $html .= '</div>';
+        }
+        $html .= '</div>';
+        $html .= '</div>';
+        
+        return $html;
     }
 }
