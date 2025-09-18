@@ -381,7 +381,7 @@ class SearchAjaxHandler {
         // Update average results
         $current_average = \get_option('carbon_marketplace_average_results', 0);
         $new_average = (($current_average * ($total_searches - 1)) + $result_count) / $total_searches;
-        \\update_option('carbon_marketplace_average_results', round($new_average, 2));
+        \update_option('carbon_marketplace_average_results', round($new_average, 2));
     }
     
     /**
