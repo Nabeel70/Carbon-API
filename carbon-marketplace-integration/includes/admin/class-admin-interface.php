@@ -7,7 +7,7 @@
 
 namespace CarbonMarketplace\Admin;
 
-use CarbonMarketplace\Api\ApiManager;
+use CarbonMarketplace\API\ApiManager;
 use CarbonMarketplace\Cache\CacheManager;
 
 /**

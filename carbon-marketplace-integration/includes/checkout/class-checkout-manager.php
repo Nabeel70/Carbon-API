@@ -7,7 +7,7 @@
 
 namespace CarbonMarketplace\Checkout;
 
-use CarbonMarketplace\Api\ApiManager;
+use CarbonMarketplace\API\ApiManager;
 use CarbonMarketplace\Models\CheckoutSession;
 use CarbonMarketplace\Models\Order;
 use CarbonMarketplace\Core\Database;

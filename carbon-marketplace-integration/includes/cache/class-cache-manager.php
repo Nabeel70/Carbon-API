@@ -612,8 +612,8 @@ class CacheManager {
      * Schedule background refresh
      */
     private function schedule_background_refresh() {
-        if (!wp_next_scheduled('carbon_marketplace_cache_refresh')) {
-            wp_schedule_event(time(), 'hourly', 'carbon_marketplace_cache_refresh');
+        if (!\wp_next_scheduled('carbon_marketplace_cache_refresh')) {
+            \wp_schedule_event(time(), 'hourly', 'carbon_marketplace_cache_refresh');
         }
     }
 

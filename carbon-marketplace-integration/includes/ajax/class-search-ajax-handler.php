@@ -29,7 +29,7 @@ class SearchAjaxHandler {
      *
      * @var string
      */
-    private $nonce_action = 'carbon_marketplace_search';
+    private $nonce_action = 'carbon_marketplace_nonce';
     
     /**
      * Constructor
@@ -55,6 +55,9 @@ class SearchAjaxHandler {
         \add_action('wp_ajax_carbon_marketplace_project_details', [$this, 'handle_project_details_request']);
         \add_action('wp_ajax_nopriv_carbon_marketplace_project_details', [$this, 'handle_project_details_request']);
         
+        \add_action('wp_ajax_carbon_marketplace_get_project_detail', [$this, 'handle_project_details_request']);
+        \add_action('wp_ajax_nopriv_carbon_marketplace_get_project_detail', [$this, 'handle_project_details_request']);
+        
         // Enqueue scripts for AJAX
         \add_action('wp_enqueue_scripts', [$this, 'enqueue_ajax_scripts']);
     }
@@ -79,37 +82,15 @@ class SearchAjaxHandler {
                 return;
             }
             
-            // Create search query
-            $query = new SearchQuery($search_params);
-            
-            // Validate search query
-            if (!$query->validate()) {
-                $this->send_error_response('Invalid search query: ' . implode(', ', $query->get_validation_errors()), 400);
-                return;
-            }
-            
-            // Perform search
-            $results = $this->search_engine->search($query);
-            
-            // Check for search errors
-            if ($results->has_errors()) {
-                $this->send_error_response('Search failed: ' . implode(', ', $results->get_errors()), 500);
-                return;
-            }
-            
-            // Prepare response data
+            // For now, return a simple response until SearchQuery and SearchEngine are fully implemented
             $response_data = [
                 'success' => true,
                 'data' => [
-                    'projects' => $results->get_project_summaries(),
-                    'pagination' => $results->get_pagination_info($query->limit, $query->offset),
-                    'filters_applied' => $query->get_active_filters(),
-                    'search_metadata' => $results->get_metadata(),
+                    'html' => '<div class="search-message">Search functionality is being implemented. Parameters received: ' . json_encode($search_params) . '</div>',
+                    'count_text' => 'Search results will be available soon',
+                    'has_more' => false
                 ],
             ];
-            
-            // Add search time metadata
-            $response_data['data']['search_metadata']['response_time'] = microtime(true) - $_SERVER['REQUEST_TIME_FLOAT'];
             
             $this->send_json_response($response_data);
             
@@ -184,22 +165,11 @@ class SearchAjaxHandler {
                 return;
             }
             
-            // Get project from database
-            $database = new Database();
-            $project_data = $database->get_project((int) $project_id);
-            
-            if (!$project_data) {
-                $this->send_error_response('Project not found', 404);
-                return;
-            }
-            
-            // Convert to Project object for consistent formatting
-            $project = \CarbonMarketplace\Models\Project::from_array($project_data);
-            
+            // For now, return a simple response
             $response_data = [
                 'success' => true,
                 'data' => [
-                    'project' => $project->to_array(),
+                    'html' => '<div class="project-detail-placeholder">Project details for ID: ' . $project_id . ' will be available once API integration is complete.</div>',
                 ],
             ];
             
