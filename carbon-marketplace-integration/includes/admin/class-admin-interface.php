@@ -126,6 +126,7 @@ class AdminInterface {
         \register_setting('carbon_marketplace_cnaught', 'carbon_marketplace_cnaught_enabled');
         
         // Toucan API settings
+        \register_setting('carbon_marketplace_toucan', 'carbon_marketplace_toucan_wallet_address');
         \register_setting('carbon_marketplace_toucan', 'carbon_marketplace_toucan_api_key');
         \register_setting('carbon_marketplace_toucan', 'carbon_marketplace_toucan_network');
         \register_setting('carbon_marketplace_toucan', 'carbon_marketplace_toucan_enabled');
@@ -268,19 +269,20 @@ class AdminInterface {
             'carbon_marketplace_cnaught_section',
             array(
                 'option_name' => 'carbon_marketplace_cnaught_api_key',
-                'description' => \__('Your CNaught API key', 'carbon-marketplace'),
+                'description' => \__('Enter your CNaught API key. Get it from your CNaught dashboard after creating an account.', 'carbon-marketplace'),
+                'placeholder' => 'sk_live_... or sk_sandbox_...',
             )
         );
         
         \add_settings_field(
             'cnaught_sandbox_mode',
-            \__('Sandbox Mode', 'carbon-marketplace'),
+            \__('Use Sandbox Mode', 'carbon-marketplace'),
             array($this, 'render_checkbox_field'),
             'carbon_marketplace_cnaught',
             'carbon_marketplace_cnaught_section',
             array(
                 'option_name' => 'carbon_marketplace_cnaught_sandbox_mode',
-                'description' => \__('Use CNaught sandbox environment for testing', 'carbon-marketplace'),
+                'description' => \__('Enable to use CNaught sandbox environment for testing. Disable for live transactions.', 'carbon-marketplace'),
             )
         );
         
@@ -298,6 +300,19 @@ class AdminInterface {
         );
         
         \add_settings_field(
+            'toucan_wallet_address',
+            \__('Wallet Address', 'carbon-marketplace'),
+            array($this, 'render_text_field'),
+            'carbon_marketplace_toucan',
+            'carbon_marketplace_toucan_section',
+            array(
+                'option_name' => 'carbon_marketplace_toucan_wallet_address',
+                'description' => \__('Your Ethereum/Polygon wallet address for Toucan Protocol interactions', 'carbon-marketplace'),
+                'placeholder' => '0x...',
+            )
+        );
+        
+        \add_settings_field(
             'toucan_api_key',
             \__('The Graph API Key (Optional)', 'carbon-marketplace'),
             array($this, 'render_text_field'),
@@ -305,7 +320,8 @@ class AdminInterface {
             'carbon_marketplace_toucan_section',
             array(
                 'option_name' => 'carbon_marketplace_toucan_api_key',
-                'description' => \__('Optional API key for The Graph hosted service', 'carbon-marketplace'),
+                'description' => \__('Optional API key for The Graph hosted service. Leave empty to use public endpoint.', 'carbon-marketplace'),
+                'placeholder' => 'Enter your The Graph API key (optional)',
             )
         );
         
@@ -668,8 +684,13 @@ class AdminInterface {
         $option_name = $args['option_name'];
         $value = \get_option($option_name, '');
         $description = $args['description'] ?? '';
+        $placeholder = $args['placeholder'] ?? '';
         
-        echo '<input type="text" name="' . esc_attr($option_name) . '" value="' . esc_attr($value) . '" class="regular-text" />';
+        echo '<input type="text" name="' . esc_attr($option_name) . '" value="' . esc_attr($value) . '" class="regular-text"';
+        if ($placeholder) {
+            echo ' placeholder="' . esc_attr($placeholder) . '"';
+        }
+        echo ' />';
         if ($description) {
             echo '<p class="description">' . esc_html($description) . '</p>';
         }
@@ -679,8 +700,13 @@ class AdminInterface {
         $option_name = $args['option_name'];
         $value = \get_option($option_name, '');
         $description = $args['description'] ?? '';
+        $placeholder = $args['placeholder'] ?? '';
         
-        echo '<input type="password" name="' . esc_attr($option_name) . '" value="' . esc_attr($value) . '" class="regular-text" />';
+        echo '<input type="password" name="' . esc_attr($option_name) . '" value="' . esc_attr($value) . '" class="regular-text"';
+        if ($placeholder) {
+            echo ' placeholder="' . esc_attr($placeholder) . '"';
+        }
+        echo ' />';
         if ($description) {
             echo '<p class="description">' . esc_html($description) . '</p>';
         }
@@ -732,11 +758,18 @@ class AdminInterface {
     }
     
     public function render_cnaught_section() {
-        echo '<p>' . \__('Configure CNaught API integration settings.', 'carbon-marketplace') . '</p>';
+        echo '<p>' . \__('Configure CNaught API integration settings. CNaught provides access to curated carbon offset projects from verified registries.', 'carbon-marketplace') . '</p>';
+        echo '<p><strong>' . \__('To get your API key:', 'carbon-marketplace') . '</strong> ' . 
+             \__('Visit <a href="https://docs.cnaught.com" target="_blank">CNaught Documentation</a> and sign up for an API account.', 'carbon-marketplace') . '</p>';
     }
     
     public function render_toucan_section() {
-        echo '<p>' . \__('Configure Toucan Protocol integration settings.', 'carbon-marketplace') . '</p>';
+        echo '<p>' . \__('Configure Toucan Protocol integration settings. Toucan Protocol enables tokenized carbon credits on the blockchain.', 'carbon-marketplace') . '</p>';
+        echo '<p><strong>' . \__('Required:', 'carbon-marketplace') . '</strong> ' . 
+             \__('Your Ethereum/Polygon wallet address. Optional: The Graph API key for enhanced data access.', 'carbon-marketplace') . '</p>';
+        echo '<p><strong>' . \__('Learn more:', 'carbon-marketplace') . '</strong> ' . 
+             '<a href="https://docs.toucan.earth" target="_blank">' . \__('Toucan Documentation', 'carbon-marketplace') . '</a> | ' .
+             '<a href="https://app.toucan.earth" target="_blank">' . \__('Toucan App', 'carbon-marketplace') . '</a></p>';
     }
     
     /**
