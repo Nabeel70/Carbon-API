@@ -328,11 +328,11 @@ class CarbonMarketplace {
         $migration->run_migrations();
         
         // Schedule cron events
-        if (!wp_next_scheduled('carbon_marketplace_cache_refresh')) {
+        if (!\wp_next_scheduled('carbon_marketplace_cache_refresh')) {
             \wp_schedule_event(time(), 'hourly', 'carbon_marketplace_cache_refresh');
         }
         
-        if (!wp_next_scheduled('carbon_marketplace_data_sync')) {
+        if (!\wp_next_scheduled('carbon_marketplace_data_sync')) {
             \wp_schedule_event(time(), 'twicedaily', 'carbon_marketplace_data_sync');
         }
         
@@ -390,7 +390,7 @@ class CarbonMarketplace {
         );
         
         foreach ($defaults as $option => $value) {
-            if (get_option($option) === false) {
+            if (\get_option($option) === false) {
                 \add_option($option, $value);
             }
         }
