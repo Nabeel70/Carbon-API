@@ -29,7 +29,7 @@ class SearchAjaxHandler {
      *
      * @var string
      */
-    private $nonce_action = 'carbon_marketplace_search';
+    private $nonce_action = 'carbon_marketplace_nonce';
     
     /**
      * Constructor
@@ -131,7 +131,7 @@ class SearchAjaxHandler {
             }
             
             // Get and sanitize input
-            $input = sanitize_text_field($_POST['input'] ?? '');
+            $input = \sanitize_text_field($_POST['input'] ?? '');
             $limit = (int) ($_POST['limit'] ?? 10);
             
             // Validate input
@@ -177,7 +177,7 @@ class SearchAjaxHandler {
             }
             
             // Get and sanitize project ID
-            $project_id = sanitize_text_field($_POST['project_id'] ?? '');
+            $project_id = \sanitize_text_field($_POST['project_id'] ?? '');
             
             if (empty($project_id)) {
                 $this->send_error_response('Project ID is required', 400);
@@ -239,7 +239,7 @@ class SearchAjaxHandler {
      */
     private function verify_nonce(): bool {
         $nonce = $_POST['nonce'] ?? '';
-        return wp_verify_nonce($nonce, $this->nonce_action);
+        return \wp_verify_nonce($nonce, $this->nonce_action);
     }
     
     /**
@@ -254,7 +254,7 @@ class SearchAjaxHandler {
         $text_fields = ['keyword', 'location', 'project_type', 'vendor', 'sort_by', 'sort_order'];
         foreach ($text_fields as $field) {
             if (isset($_POST[$field]) && !empty($_POST[$field])) {
-                $params[$field] = sanitize_text_field($_POST[$field]);
+                $params[$field] = \sanitize_text_field($_POST[$field]);
             }
         }
         
@@ -293,7 +293,7 @@ class SearchAjaxHandler {
      * @param array $data Response data
      */
     private function send_json_response(array $data): void {
-        wp_send_json($data);
+        \wp_send_json($data);
     }
     
     /**
@@ -303,8 +303,8 @@ class SearchAjaxHandler {
      * @param int $status_code HTTP status code
      */
     private function send_error_response(string $message, int $status_code = 400): void {
-        status_header($status_code);
-        wp_send_json([
+        \status_header($status_code);
+        \wp_send_json([
             'success' => false,
             'error' => [
                 'message' => $message,
