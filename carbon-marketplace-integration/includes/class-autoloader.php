@@ -47,39 +47,25 @@ class Autoloader {
         // Get the relative class name
         $relative_class = substr($class, $len);
         
-        // Replace the namespace prefix with the base directory, replace namespace
-        // separators with directory separators in the relative class name, append
-        // with .php
-        $file = self::$base_dir . str_replace('\\', '/', $relative_class) . '.php';
+        // Convert namespace separators to directory separators and make directories lowercase
+        $path_parts = explode('\\', $relative_class);
+        $class_name = array_pop($path_parts); // Get the class name
+        $directories = array_map('strtolower', $path_parts); // Convert directories to lowercase
         
-        // Convert class name to file name format (PascalCase to kebab-case)
-        $file = self::convert_class_name_to_file_name($file);
+        // Build the file path
+        $file_path = self::$base_dir;
+        if (!empty($directories)) {
+            $file_path .= implode('/', $directories) . '/';
+        }
+        
+        // Convert class name to file name format (PascalCase to kebab-case with class- prefix)
+        $kebab_case = strtolower(preg_replace('/([a-z])([A-Z])/', '$1-$2', $class_name));
+        $file_name = 'class-' . $kebab_case . '.php';
+        $file_path .= $file_name;
         
         // If the file exists, require it
-        if (file_exists($file)) {
-            require $file;
+        if (file_exists($file_path)) {
+            require $file_path;
         }
-    }
-    
-    /**
-     * Convert PascalCase class names to kebab-case file names
-     *
-     * @param string $file_path The file path with PascalCase class name
-     * @return string The file path with kebab-case file name
-     */
-    private static function convert_class_name_to_file_name($file_path) {
-        $path_parts = pathinfo($file_path);
-        $directory = $path_parts['dirname'];
-        $filename = $path_parts['filename'];
-        
-        // Convert PascalCase to kebab-case and add class- prefix
-        $kebab_case = strtolower(preg_replace('/([a-z])([A-Z])/', '$1-$2', $filename));
-        
-        // Add class- prefix if not already present
-        if (strpos($kebab_case, 'class-') !== 0) {
-            $kebab_case = 'class-' . $kebab_case;
-        }
-        
-        return $directory . '/' . $kebab_case . '.php';
     }
 }

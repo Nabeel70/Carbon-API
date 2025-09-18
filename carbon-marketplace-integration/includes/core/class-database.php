@@ -183,6 +183,19 @@ class Database {
     }
     
     /**
+     * Drop all plugin tables
+     * 
+     * @return bool True on success, false on failure
+     */
+    public function drop_tables(): bool {
+        // Drop tables in reverse order (orders first due to potential foreign keys)
+        $success = true;
+        $success = $success && $this->drop_orders_table();
+        $success = $success && $this->drop_projects_table();
+        return $success;
+    }
+    
+    /**
      * Insert project into database
      *
      * @param array $project_data Project data
