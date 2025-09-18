@@ -10,6 +10,8 @@ namespace CarbonMarketplace;
 use CarbonMarketplace\Core\Database;
 use CarbonMarketplace\Core\Migration;
 use CarbonMarketplace\Api\ApiManager;
+use CarbonMarketplace\Api\CNaughtClient;
+use CarbonMarketplace\Api\ToucanClient;
 use CarbonMarketplace\Cache\CacheManager;
 use CarbonMarketplace\Search\SearchEngine;
 use CarbonMarketplace\Ajax\SearchAjaxHandler;
@@ -135,11 +137,53 @@ class CarbonMarketplace {
         $this->database = new Database();
         $this->cache_manager = new CacheManager();
         $this->api_manager = new ApiManager($this->cache_manager);
+        $this->init_api_clients(); // Initialize API clients
         $this->checkout_manager = new CheckoutManager($this->api_manager, $this->database);
         $this->search_engine = new SearchEngine($this->database);
-        $this->ajax_handler = new SearchAjaxHandler($this->search_engine);
+        $this->ajax_handler = new SearchAjaxHandler($this->search_engine, $this->api_manager);
         $this->admin_interface = new AdminInterface($this->api_manager, $this->cache_manager);
         $this->webhook_handler = new WebhookHandler($this->checkout_manager, $this->database);
+    }
+    
+    /**
+     * Initialize API clients based on plugin settings
+     */
+    private function init_api_clients() {
+        // Initialize CNaught client if enabled and configured
+        $cnaught_enabled = \get_option('carbon_marketplace_cnaught_enabled', false);
+        $cnaught_api_key = \get_option('carbon_marketplace_cnaught_api_key', '');
+        
+        if ($cnaught_enabled && !empty($cnaught_api_key)) {
+            $cnaught_sandbox = \get_option('carbon_marketplace_cnaught_sandbox_mode', false);
+            
+            $cnaught_config = array(
+                'api_key' => $cnaught_api_key,
+                'base_url' => $cnaught_sandbox 
+                    ? 'https://sandbox.cnaught.com/api/v1' 
+                    : 'https://api.cnaught.com/v1',
+            );
+            
+            $cnaught_client = new CNaughtClient($cnaught_config);
+            $this->api_manager->register_client('cnaught', $cnaught_client);
+        }
+        
+        // Initialize Toucan client if enabled
+        $toucan_enabled = \get_option('carbon_marketplace_toucan_enabled', false);
+        
+        if ($toucan_enabled) {
+            $toucan_api_key = \get_option('carbon_marketplace_toucan_api_key', '');
+            $toucan_network = \get_option('carbon_marketplace_toucan_network', 'polygon');
+            $toucan_wallet = \get_option('carbon_marketplace_toucan_wallet_address', '');
+            
+            $toucan_config = array(
+                'api_key' => $toucan_api_key, // Optional for The Graph
+                'network' => $toucan_network,
+                'wallet_address' => $toucan_wallet,
+            );
+            
+            $toucan_client = new ToucanClient($toucan_config);
+            $this->api_manager->register_client('toucan', $toucan_client);
+        }
     }
     
     /**

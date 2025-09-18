@@ -11,6 +11,7 @@ namespace CarbonMarketplace\Ajax;
 use CarbonMarketplace\Search\SearchEngine;
 use CarbonMarketplace\Models\SearchQuery;
 use CarbonMarketplace\Core\Database;
+use CarbonMarketplace\Api\ApiManager;
 
 /**
  * SearchAjaxHandler class for handling AJAX search requests
@@ -25,6 +26,13 @@ class SearchAjaxHandler {
     private $search_engine;
     
     /**
+     * API Manager instance
+     *
+     * @var ApiManager
+     */
+    private $api_manager;
+    
+    /**
      * Nonce action for search requests
      *
      * @var string
@@ -35,9 +43,11 @@ class SearchAjaxHandler {
      * Constructor
      *
      * @param SearchEngine $search_engine SearchEngine instance
+     * @param ApiManager $api_manager ApiManager instance
      */
-    public function __construct(SearchEngine $search_engine = null) {
+    public function __construct(SearchEngine $search_engine = null, ApiManager $api_manager = null) {
         $this->search_engine = $search_engine ?: new SearchEngine();
+        $this->api_manager = $api_manager;
         $this->init_hooks();
     }
     
@@ -88,13 +98,30 @@ class SearchAjaxHandler {
                 return;
             }
             
-            // Perform search
-            $results = $this->search_engine->search($query);
-            
-            // Check for search errors
-            if ($results->has_errors()) {
-                $this->send_error_response('Search failed: ' . implode(', ', $results->get_errors()), 500);
-                return;
+            // Perform search - use API Manager for live data if available
+            if ($this->api_manager && $this->api_manager->get_all_clients()) {
+                // Fetch live data from all registered API clients
+                $projects = $this->api_manager->fetch_all_projects($search_params);
+                
+                if (is_wp_error($projects)) {
+                    $this->send_error_response('API search failed: ' . $projects->get_error_message(), 500);
+                    return;
+                }
+                
+                // Filter projects based on search criteria
+                $filtered_projects = $this->filter_projects($projects, $query);
+                
+                // Create results object
+                $results = new \CarbonMarketplace\Search\SearchResults($filtered_projects, $query);
+            } else {
+                // Fallback to local search engine
+                $results = $this->search_engine->search($query);
+                
+                // Check for search errors
+                if ($results->has_errors()) {
+                    $this->send_error_response('Search failed: ' . implode(', ', $results->get_errors()), 500);
+                    return;
+                }
             }
             
             // Prepare response data
@@ -321,9 +348,9 @@ class SearchAjaxHandler {
     public function get_search_statistics(): array {
         // This could be expanded to track search metrics
         return [
-            'total_searches' => get_option('carbon_marketplace_total_searches', 0),
-            'popular_keywords' => get_option('carbon_marketplace_popular_keywords', []),
-            'average_results' => get_option('carbon_marketplace_average_results', 0),
+            'total_searches' => \get_option('carbon_marketplace_total_searches', 0),
+            'popular_keywords' => \get_option('carbon_marketplace_popular_keywords', []),
+            'average_results' => \get_option('carbon_marketplace_average_results', 0),
         ];
     }
     
@@ -335,12 +362,12 @@ class SearchAjaxHandler {
      */
     private function track_search(SearchQuery $query, int $result_count): void {
         // Increment total searches
-        $total_searches = get_option('carbon_marketplace_total_searches', 0);
-        update_option('carbon_marketplace_total_searches', $total_searches + 1);
+        $total_searches = \get_option('carbon_marketplace_total_searches', 0);
+        \update_option('carbon_marketplace_total_searches', $total_searches + 1);
         
         // Track popular keywords
         if (!empty($query->keyword)) {
-            $popular_keywords = get_option('carbon_marketplace_popular_keywords', []);
+            $popular_keywords = \get_option('carbon_marketplace_popular_keywords', []);
             $keyword = strtolower($query->keyword);
             $popular_keywords[$keyword] = ($popular_keywords[$keyword] ?? 0) + 1;
             
@@ -348,12 +375,77 @@ class SearchAjaxHandler {
             arsort($popular_keywords);
             $popular_keywords = array_slice($popular_keywords, 0, 100, true);
             
-            update_option('carbon_marketplace_popular_keywords', $popular_keywords);
+            \update_option('carbon_marketplace_popular_keywords', $popular_keywords);
         }
         
         // Update average results
-        $current_average = get_option('carbon_marketplace_average_results', 0);
+        $current_average = \get_option('carbon_marketplace_average_results', 0);
         $new_average = (($current_average * ($total_searches - 1)) + $result_count) / $total_searches;
-        update_option('carbon_marketplace_average_results', round($new_average, 2));
+        \\update_option('carbon_marketplace_average_results', round($new_average, 2));
+    }
+    
+    /**
+     * Filter projects based on search query criteria
+     *
+     * @param array $projects Array of Project objects
+     * @param SearchQuery $query Search query
+     * @return array Filtered projects
+     */
+    private function filter_projects($projects, $query) {
+        if (empty($projects)) {
+            return array();
+        }
+        
+        $filtered = $projects;
+        
+        // Filter by search keyword
+        if (!empty($query->keyword)) {
+            $keyword = strtolower($query->keyword);
+            $filtered = array_filter($filtered, function($project) use ($keyword) {
+                return strpos(strtolower($project->name), $keyword) !== false ||
+                       strpos(strtolower($project->description), $keyword) !== false ||
+                       strpos(strtolower($project->location), $keyword) !== false;
+            });
+        }
+        
+        // Filter by location
+        if (!empty($query->location)) {
+            $filtered = array_filter($filtered, function($project) use ($query) {
+                return stripos($project->location, $query->location) !== false;
+            });
+        }
+        
+        // Filter by project type
+        if (!empty($query->project_type)) {
+            $filtered = array_filter($filtered, function($project) use ($query) {
+                return stripos($project->project_type, $query->project_type) !== false;
+            });
+        }
+        
+        // Filter by vendor
+        if (!empty($query->vendor)) {
+            $filtered = array_filter($filtered, function($project) use ($query) {
+                return $project->vendor === $query->vendor;
+            });
+        }
+        
+        // Filter by price range
+        if (isset($query->min_price) && $query->min_price > 0) {
+            $filtered = array_filter($filtered, function($project) use ($query) {
+                return $project->price_per_kg >= $query->min_price;
+            });
+        }
+        
+        if (isset($query->max_price) && $query->max_price > 0) {
+            $filtered = array_filter($filtered, function($project) use ($query) {
+                return $project->price_per_kg <= $query->max_price;
+            });
+        }
+        
+        // Apply pagination
+        $offset = $query->offset ?? 0;
+        $limit = $query->limit ?? 20;
+        
+        return array_slice($filtered, $offset, $limit);
     }
 }
